@@ -6,12 +6,15 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import BottomBar from './src/navigation/BottomBar';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
+
 
 export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   Onboarding: undefined;
-  Home: undefined;        // resolves to BottomBar (all tabs)
+  Home: undefined;
+  ForgotPassword: undefined;        // resolves to BottomBar (all tabs)
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -27,6 +30,7 @@ export default function App() {
         <Stack.Screen name="Signup"     component={SignupScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         <Stack.Screen name="Home"       component={BottomBar} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
