@@ -13,9 +13,6 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../App';
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 
@@ -37,6 +34,7 @@ const C = {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type OccupancyLevel = 'low' | 'med' | 'high' | 'none';
 type StatusType = 'open' | 'soon' | 'closed';
 type SortOption = 'Relevance' | 'Open Now' | 'Closest';
 type MealType = 'breakfast' | 'lunch' | 'dinner';
@@ -63,6 +61,9 @@ interface DiningHall {
   emojiBg: string;
   status: StatusType;
   hours: string;
+  occupancy: OccupancyLevel;
+  occupancyLabel: string;
+  occupancyPct: number;
   aiPickLabel: string;
   aiPickName: string;
   closedNote?: string;
@@ -80,7 +81,10 @@ const DINING_HALLS: DiningHall[] = [
     emojiBg: '#FFE8D6',
     status: 'open',
     hours: 'Closes 8:00 PM',
-    aiPickLabel: 'High Protein',
+    occupancy: 'med',
+    occupancyLabel: 'Moderate',
+    occupancyPct: 58,
+    aiPickLabel: 'AI Pick · High Protein',
     aiPickName: 'Roasted Turkey Recovery',
     mapsUrl: 'https://www.google.com/maps/place/Gordon+Dining+and+Event+Center/@43.0711999,-89.4011868,16z/data=!3m1!4b1!4m6!3m5!1s0x8807acccaa79ac4b:0xc41dfe34820883a9!8m2!3d43.071196!4d-89.3986119!16s%2Fg%2F11b7r6fxl7?entry=ttu&g_ep=EgoyMDI2MDMxMS4wIKXMDSoASAFQAw%3D%3D',
     menus: {
@@ -152,7 +156,10 @@ const DINING_HALLS: DiningHall[] = [
     emojiBg: '#E8F4FF',
     status: 'open',
     hours: 'Closes 9:00 PM',
-    aiPickLabel: 'Balanced Meal',
+    occupancy: 'low',
+    occupancyLabel: 'Low',
+    occupancyPct: 25,
+    aiPickLabel: 'AI Pick · Balanced Meal',
     aiPickName: 'Giardiniera Chicken Pasta',
     mapsUrl: 'https://www.google.com/maps/place/Rheta\'s+Market/@43.073974,-89.404274,16z/data=!3m1!4b1!4m6!3m5!1s0x8807acca4b2a8c4b:0x8769af98847c0415!8m2!3d43.0739701!4d-89.4016991!16s%2Fg%2F11c58twwd0?entry=ttu&g_ep=EgoyMDI2MDMxMS4wIKXMDSoASAFQAw%3D%3D',
     menus: {
@@ -206,7 +213,10 @@ const DINING_HALLS: DiningHall[] = [
     emojiBg: '#E8FFE8',
     status: 'soon',
     hours: 'Closes 2:30 PM',
-    aiPickLabel: 'Lean & Clean',
+    occupancy: 'high',
+    occupancyLabel: 'Busy',
+    occupancyPct: 80,
+    aiPickLabel: 'AI Pick · Lean & Clean',
     aiPickName: 'Atlantic Salmon Power Bowl',
     mapsUrl: 'https://www.google.com/maps/place/Liz\'s+Market/@43.0767289,-89.4095358,16z/data=!3m1!4b1!4m6!3m5!1s0x8807adcdda80c29d:0xe3f83313cf2d6a59!8m2!3d43.076725!4d-89.4069609!16s%2Fg%2F12ml2vlyd?entry=ttu&g_ep=EgoyMDI2MDMxMS4wIKXMDSoASAFQAw%3D%3D',
     menus: {
@@ -256,7 +266,10 @@ const DINING_HALLS: DiningHall[] = [
     emojiBg: '#E8F0FF',
     status: 'open',
     hours: 'Closes 7:30 PM',
-    aiPickLabel: 'Comfort Fuel',
+    occupancy: 'low',
+    occupancyLabel: 'Low',
+    occupancyPct: 20,
+    aiPickLabel: 'AI Pick · Comfort Fuel',
     aiPickName: 'Beef Stew & Sourdough',
     mapsUrl: 'https://www.google.com/maps/place/Four+Lakes+Market/@43.0777477,-89.4203371,17z/data=!3m1!4b1!4m6!3m5!1s0x8807ac9566b34807:0x16e0208ca98cbfa!8m2!3d43.0777438!4d-89.4177622!16s%2Fg%2F11bc7ryb0g?entry=ttu&g_ep=EgoyMDI2MDMxMS4wIKXMDSoASAFQAw%3D%3D',
     menus: {
@@ -309,7 +322,10 @@ const DINING_HALLS: DiningHall[] = [
     emojiBg: '#FFF0E8',
     status: 'closed',
     hours: 'Opens 5:00 PM',
-    aiPickLabel: 'Bold Flavors',
+    occupancy: 'none',
+    occupancyLabel: '—',
+    occupancyPct: 0,
+    aiPickLabel: 'AI Pick · Bold Flavors',
     aiPickName: 'Taco Night Combo',
     closedNote: 'Closed · Opens today at 5:00 PM',
     mapsUrl: 'https://www.google.com/maps/place/Carson\'s+Market/@43.0767289,-89.4095358,16z/data=!4m6!3m5!1s0x8807acb895b5c825:0x560f53526b34c7b0!8m2!3d43.0771572!4d-89.4113975!16s%2Fg%2F1q6cn9qrx?entry=ttu&g_ep=EgoyMDI2MDMxMS4wIKXMDSoASAFQAw%3D%3D',
@@ -365,7 +381,10 @@ const DINING_HALLS: DiningHall[] = [
     emojiBg: '#F5E8FF',
     status: 'closed',
     hours: 'Opens 11:00 AM',
-    aiPickLabel: 'Plant Based',
+    occupancy: 'none',
+    occupancyLabel: '—',
+    occupancyPct: 0,
+    aiPickLabel: 'AI Pick · Plant Based',
     aiPickName: 'Garden Power Bowl',
     closedNote: 'Closed · Opens tomorrow at 11:00 AM',
     mapsUrl: 'https://www.google.com/maps/place/Lowell+Market/@43.0762606,-89.3983387,17z/data=!3m1!4b1!4m6!3m5!1s0x88065319694f98ad:0xcc0cdb26603e741a!8m2!3d43.0762567!4d-89.3957638!16s%2Fg%2F11rrrmprcf?entry=ttu&g_ep=EgoyMDI2MDMxMS4wIKXMDSoASAFQAw%3D%3D',
@@ -500,6 +519,12 @@ const MealPane = ({
   menu: MealMenu;
 }) => (
   <View>
+    <View style={styles.menuSectionLabel}>
+      <Text style={styles.menuSectionTitle}>
+        {meal.charAt(0).toUpperCase() + meal.slice(1)} Menu
+      </Text>
+      <Text style={styles.menuCount}>{menu.count} items</Text>
+    </View>
     <View style={styles.menuItems}>
       {menu.categories.map((cat, i) => (
         <MenuCategorySection key={i} {...cat} />
@@ -507,6 +532,30 @@ const MealPane = ({
     </View>
   </View>
 );
+
+// ─── Occupancy bar ────────────────────────────────────────────────────────────
+
+const OccupancyBar = ({
+  level,
+  pct,
+  label,
+}: {
+  level: OccupancyLevel;
+  pct: number;
+  label: string;
+}) => {
+  const fillColor =
+    level === 'low' ? C.green : level === 'med' ? C.yellow : level === 'high' ? C.red : 'transparent';
+
+  return (
+    <View style={styles.occupancyRow}>
+      <View style={styles.occBar}>
+        <View style={[styles.occFill, { width: `${pct}%` as any, backgroundColor: fillColor }]} />
+      </View>
+      <Text style={styles.occupancyLabel}>{label}</Text>
+    </View>
+  );
+};
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
@@ -542,10 +591,9 @@ const StatusBadge = ({ status }: { status: StatusType }) => {
 // ─── Dining Hall Card ─────────────────────────────────────────────────────────
 
 const DiningHallCard = ({ hall }: { hall: DiningHall }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(hall.id === 'gordon');
   const [activeMeal, setActiveMeal] = useState<MealType>('breakfast');
   const rotateAnim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const toggleExpand = () => {
     const toValue = expanded ? 0 : 1;
@@ -588,11 +636,18 @@ const DiningHallCard = ({ hall }: { hall: DiningHall }) => {
         </View>
 
         <View style={styles.hallRight}>
-          <View style={styles.hallChevron}>
-            <Animated.View style={{ transform: [{ rotate }] }}>
-              <ChevronIcon />
-            </Animated.View>
-          </View>
+          {hall.occupancy !== 'none' ? (
+            <OccupancyBar
+              level={hall.occupancy}
+              pct={hall.occupancyPct}
+              label={hall.occupancyLabel}
+            />
+          ) : (
+            <Text style={styles.occupancyLabel}>—</Text>
+          )}
+          <Animated.View style={[styles.hallChevron, { transform: [{ rotate }] }]}>
+            <ChevronIcon />
+          </Animated.View>
         </View>
       </TouchableOpacity>
 
@@ -608,7 +663,7 @@ const DiningHallCard = ({ hall }: { hall: DiningHall }) => {
 
           {/* AI combo button */}
           <View style={styles.comboBtnWrap}>
-            <TouchableOpacity style={styles.comboBtn} activeOpacity={0.85} onPress={() => navigation.navigate('MealConfirmed')}>
+            <TouchableOpacity style={styles.comboBtn} activeOpacity={0.85}>
               <View style={styles.comboBtnLeft}>
                 <View style={styles.comboIconWrap}>
                   <Text style={styles.comboIcon}>⭐</Text>
@@ -799,6 +854,10 @@ const styles = StyleSheet.create({
     borderColor: C.border,
     borderRadius: 22,
     backgroundColor: C.bg2,
+    ...Platform.select({
+      ios: { shadowColor: C.border, shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0 },
+      android: { elevation: 3 },
+    }),
   },
   sortLabel: {
     fontSize: 10,
@@ -871,8 +930,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 24,
+    paddingTop: 14,
+    paddingBottom: 16,
   },
 
   // Hall card
@@ -881,7 +940,7 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     borderColor: C.border,
     borderRadius: 22,
-    marginBottom: 16,
+    marginBottom: 12,
     overflow: 'hidden',
     ...Platform.select({
       ios: { shadowColor: C.border, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 },
@@ -891,13 +950,13 @@ const styles = StyleSheet.create({
   hallHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    padding: 18,
+    gap: 12,
+    padding: 14,
   },
   hallEmojiWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
+    width: 54,
+    height: 54,
+    borderRadius: 16,
     borderWidth: 2.5,
     borderColor: C.border,
     alignItems: 'center',
@@ -909,58 +968,63 @@ const styles = StyleSheet.create({
     }),
   },
   hallEmoji: {
-    fontSize: 30,
+    fontSize: 26,
   },
   hallInfo: {
     flex: 1,
     minWidth: 0,
   },
   hallName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '900',
     color: C.ink,
     letterSpacing: -0.3,
-    marginBottom: 7,
+    marginBottom: 5,
   },
   hallMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
+    flexWrap: 'wrap',
   },
   hallHours: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: C.inkMuted,
   },
   locationBtn: {
     alignSelf: 'flex-start',
-    marginTop: 9,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
+    marginTop: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 9,
     borderRadius: 10,
     borderWidth: 1.5,
     borderColor: C.border,
     backgroundColor: C.bg,
   },
   locationBtnText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     color: C.ink,
   },
   hallRight: {
     alignItems: 'flex-end',
-    gap: 10,
+    gap: 6,
     flexShrink: 0,
   },
   hallChevron: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: C.redLight,
     borderWidth: 2,
     borderColor: C.border,
     alignItems: 'center',
     justifyContent: 'center',
+    ...Platform.select({
+      ios: { shadowColor: C.border, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 1, shadowRadius: 0 },
+      android: { elevation: 2 },
+    }),
   },
 
   // Status badge
@@ -968,8 +1032,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingVertical: 3,
+    paddingHorizontal: 9,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: C.border,
@@ -977,7 +1041,7 @@ const styles = StyleSheet.create({
   badgeOpen: { backgroundColor: C.greenLight },
   badgeSoon: { backgroundColor: C.yellowLight },
   badgeClosed: { backgroundColor: '#F0E0E0' },
-  statusBadgeText: { fontSize: 11, fontWeight: '800' },
+  statusBadgeText: { fontSize: 10, fontWeight: '800' },
   badgeTextOpen: { color: '#15803D' },
   badgeTextSoon: { color: '#92400E' },
   badgeTextClosed: { color: C.inkMuted },
@@ -989,6 +1053,31 @@ const styles = StyleSheet.create({
   dotOpen: { backgroundColor: C.green },
   dotSoon: { backgroundColor: C.yellow },
   dotClosed: { backgroundColor: C.inkMuted },
+
+  // Occupancy
+  occupancyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  occBar: {
+    width: 36,
+    height: 6,
+    backgroundColor: '#F0E0E0',
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: C.border,
+    overflow: 'hidden',
+  },
+  occFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  occupancyLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: C.inkMuted,
+  },
 
   // Expanded
   hallExpandInner: {
@@ -1148,11 +1237,11 @@ const styles = StyleSheet.create({
   menuGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 7,
     marginBottom: 2,
   },
   menuItem: {
-    width: '47%',
+    width: '47.5%',
     backgroundColor: C.menuItem,
     borderWidth: 2,
     borderColor: C.border,
@@ -1160,9 +1249,12 @@ const styles = StyleSheet.create({
     padding: 9,
     paddingHorizontal: 10,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 8,
-    minHeight: 44,
+    ...Platform.select({
+      ios: { shadowColor: C.border, shadowOffset: { width: 2, height: 2 }, shadowOpacity: 1, shadowRadius: 0 },
+      android: { elevation: 2 },
+    }),
   },
   menuItemName: {
     fontSize: 11,
@@ -1181,6 +1273,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+    ...Platform.select({
+      ios: { shadowColor: C.border, shadowOffset: { width: 1, height: 1 }, shadowOpacity: 1, shadowRadius: 0 },
+      android: { elevation: 1 },
+    }),
   },
   starBtnStarred: {
     backgroundColor: '#FFF2DC',
