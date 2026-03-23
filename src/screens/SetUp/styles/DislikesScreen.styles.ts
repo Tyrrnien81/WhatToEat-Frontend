@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
     borderWidth: 2, borderColor: COLORS.border,
     borderRadius: 20, backgroundColor: COLORS.beige,
   },
-  tagSelected: { backgroundColor: COLORS.yellowSelected, borderColor: COLORS.yellowBorder },
+  tagSelected: { backgroundColor: COLORS.redLight, borderColor: COLORS.red },
   tagText: { fontSize: 11, fontWeight: '700', color: COLORS.ink },
   tagTextSelected: { color: COLORS.ink },
 });

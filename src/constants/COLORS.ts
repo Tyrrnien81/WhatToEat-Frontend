@@ -13,6 +13,8 @@ export const COLORS = {
   background: '#e8e8e8',
   orange: '#FF9F1C',
   teal: '#2EC4B6',
-  yellowSelected: '#FFFBE6',  
-  yellowBorder: '#D4A017',    
+  yellowSelected: '#FFFBE6',   
+  yellowBorder: '#D4A017',     
+  peachSelected: '#FFF0E8',    
+  peachBorder: '#E8956D',      
 };

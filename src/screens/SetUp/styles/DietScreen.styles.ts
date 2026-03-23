@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
     shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1, shadowRadius: 0, elevation: 4,
   },
-  dietRowSelected: { backgroundColor: COLORS.yellowSelected, borderColor: COLORS.yellowBorder },
+  dietRowSelected: { backgroundColor: COLORS.peachSelected, borderColor: COLORS.peachBorder },
   dietEmoji: { fontSize: 40, width: 52, textAlign: 'center' },
   dietInfo: { flex: 1 },
   dietName: { fontSize: 15, fontWeight: '900', color: COLORS.ink, letterSpacing: -0.3, marginBottom: 2 },
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.beige,
     alignItems: 'center', justifyContent: 'center',
   },
-  checkBadgeSel: { backgroundColor: COLORS.yellowBorder, borderColor: COLORS.yellowBorder },
+  checkBadgeSel: { backgroundColor: COLORS.peachBorder, borderColor: COLORS.peachBorder },
   checkMark: { fontSize: 11, fontWeight: '900', color: 'white' },
 
   continueBtn: {
