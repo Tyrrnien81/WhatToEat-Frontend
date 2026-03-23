@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { styles } from '../styles/ScanScreen.styles';
+import { styles } from '../styles/ScanFrame.styles';
 
 // Corner brackets + "Scan your meal" label overlay
 export default function ScanFrame() {

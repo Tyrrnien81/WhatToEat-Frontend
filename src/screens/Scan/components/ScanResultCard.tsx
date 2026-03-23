@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { styles } from '../styles/ScanScreen.styles';
+import { styles } from '../styles/ScanResultCard.styles';
 
 type Props = {
   kcal: number;

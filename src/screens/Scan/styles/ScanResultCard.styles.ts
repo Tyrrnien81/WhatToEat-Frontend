@@ -3,7 +3,7 @@ import { COLORS } from '../../../constants/COLORS';
 
 export const styles = StyleSheet.create({
 
-    // Result Card
+ // Result Card
   resultCard: {
     position: 'absolute', bottom: 115,
     left: 24, right: 24,
