@@ -17,7 +17,7 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function buildDateTabs(): DateTab[] {
-  return Array.from({ length: 5 }, (_, i) => {
+  return Array.from({ length: 10 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
     return {
@@ -31,6 +31,14 @@ function buildDateTabs(): DateTab[] {
 
 const DATE_TABS = buildDateTabs();
 
+// Days 5–9 fall back to nearest available mock day (0–4)
+function resolveDayKey(date: string, availableKeys: string[]): string {
+  if (availableKeys.includes(date)) return date;
+  // Fall back to same weekday offset mod 5
+  const idx = DATE_TABS.findIndex(t => t.key === date);
+  return availableKeys[idx % availableKeys.length] ?? availableKeys[0];
+}
+
 export default function DiningHallsScreen() {
   const insets = useSafeAreaInsets();
   const [sortBy, setSortBy] = useState<SortOption>('Relevance');
@@ -38,15 +46,18 @@ export default function DiningHallsScreen() {
   const [selectedDate, setSelectedDate] = useState(DATE_TABS[0].key);
 
   const sortedHalls = [...DINING_HALLS].sort((a, b) => {
-    const dayA = a.days[selectedDate];
-    const dayB = b.days[selectedDate];
+    const keysA = Object.keys(a.days);
+    const keysB = Object.keys(b.days);
+    const keyA = resolveDayKey(selectedDate, keysA);
+    const keyB = resolveDayKey(selectedDate, keysB);
+    const dayA = a.days[keyA];
+    const dayB = b.days[keyB];
     if (!dayA || !dayB) return 0;
     if (sortBy === 'Open Now') {
       const rank = (s: StatusType) => (s === 'open' ? 0 : s === 'soon' ? 1 : 2);
       return rank(dayA.status) - rank(dayB.status);
     }
     if (sortBy === 'Closest') {
-      // TODO: replace with real GPS distance sort
       return Math.random() - 0.5;
     }
     return 0;
@@ -60,7 +71,7 @@ export default function DiningHallsScreen() {
         <Text style={styles.screenSubtitle}>6 locations on campus · Updated just now</Text>
       </View>
 
-      {/* Date tab bar */}
+      {/* Date picker */}
       <DateTabBar
         tabs={DATE_TABS}
         selectedDate={selectedDate}
@@ -97,7 +108,9 @@ export default function DiningHallsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {sortedHalls.map(hall => {
-          const day = hall.days[selectedDate];
+          const availableKeys = Object.keys(hall.days);
+          const resolvedKey = resolveDayKey(selectedDate, availableKeys);
+          const day = hall.days[resolvedKey];
           if (!day) return null;
           return <DiningHallCard key={hall.id} hall={hall} day={day} />;
         })}

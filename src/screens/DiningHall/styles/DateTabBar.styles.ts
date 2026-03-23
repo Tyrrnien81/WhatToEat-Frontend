@@ -1,54 +1,77 @@
 import { StyleSheet } from 'react-native';
 import { C } from '../theme';
 
+const PILL_WIDTH = 64;
+const HEIGHT = 56;
+const RADIUS = 14;
+
 export const styles = StyleSheet.create({
-    dateTabs: {
-        flexGrow: 0,
+    wrapper: {
         marginTop: 16,
+        paddingHorizontal: 20,
     },
-    dateTabsContent: {
-        paddingHorizontal: 18,
-        gap: 8,
-    },
-    dateTab: {
-        alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-        borderRadius: 16,
+    container: {
+        height: HEIGHT,
+        borderRadius: RADIUS,
         borderWidth: 2.5,
         borderColor: C.border,
+        overflow: 'hidden',
         backgroundColor: C.bg,
-        minWidth: 58,
     },
-    dateTabSelected: {
+    selectedBg: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: PILL_WIDTH,
         backgroundColor: C.red,
-        borderColor: C.border,
+        zIndex: 0,
     },
-    dateTabDay: {
-        fontSize: 10,
+    row: {
+        flexDirection: 'row',
+    },
+    pill: {
+        width: PILL_WIDTH,
+        height: HEIGHT,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+        backgroundColor: 'transparent',
+    },
+    pillDivider: {
+        borderLeftWidth: 1.5,
+        borderLeftColor: 'rgba(42,26,26,0.15)',
+    },
+    fillerPill: {
+        opacity: 0.3,
+    },
+    fillerIcon: {
+        fontSize: 11,
+    },
+    fillerText: {
+        fontSize: 8,
         fontWeight: '700',
         color: C.inkMuted,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        textAlign: 'center',
+        lineHeight: 10,
     },
-    dateTabDaySelected: {
+    day: {
+        fontSize: 8,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+        color: C.inkMuted,
+        textTransform: 'uppercase',
+    },
+    daySelected: {
         color: 'rgba(255,255,255,0.8)',
     },
-    dateTabNum: {
-        fontSize: 20,
+    num: {
+        fontSize: 18,
         fontWeight: '900',
         color: C.ink,
-        lineHeight: 24,
+        lineHeight: 22,
     },
-    dateTabNumSelected: {
+    numSelected: {
         color: 'white',
-    },
-    dateTabMonth: {
-        fontSize: 10,
-        fontWeight: '600',
-        color: C.inkMuted,
-    },
-    dateTabMonthSelected: {
-        color: 'rgba(255,255,255,0.8)',
     },
 });
