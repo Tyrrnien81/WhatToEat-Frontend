@@ -3,12 +3,17 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
+import ProgressBar from './components/ProgressBar';
+import ContinueButton from './components/ContinueButton';
+import BackButton from './components/BackButton';
+import SkipButton from './components/SkipButton';
+import { COLORS } from '../../constants/COLORS';
+import { styles } from './styles/DietScreen.styles';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -28,22 +33,6 @@ type RootStackParamList = {
 
 type DietScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'Diet'>;
-};
-
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-const COLORS = {
-  red: '#FF3347',
-  redLight: '#FFE0E3',
-  bg2: '#FFF5F5',
-  ink: '#1A0A0A',
-  inkMuted: '#9A7070',
-  border: '#2A1A1A',
-  beige: '#F5ECD7',
-  greenSelected: '#BBFAD4',
-  greenBorder: '#4ADE80',
-  green: '#22C55E',
-  orange: '#FF9F1C',
-  teal: '#2EC4B6',
 };
 
 // ─── Diet Data ────────────────────────────────────────────────────────────────
@@ -95,29 +84,34 @@ const DIETS: Diet[] = [
 export default function DietScreen({ navigation }: DietScreenProps) {
   const [selected, setSelected]     = useState<string | null>(null);
   const [detailDiet, setDetailDiet] = useState<Diet | null>(null);
+  const [modalReady, setModalReady] = useState(false);
 
   const handleConfirm = () => {
     if (detailDiet) {
       setSelected(detailDiet.id);
-      setTimeout(() => setDetailDiet(null), 400);
+      setTimeout(() => {
+        setDetailDiet(null);
+        setModalReady(false);
+      }, 400);
     }
+  };
+
+  const handleCloseModal = () => {
+    setDetailDiet(null);
+    setModalReady(false);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
 
-      {/* ── Back ── */}
-      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
-        <Text style={styles.backBtnText}>← Back</Text>
-      </TouchableOpacity>
+      {/* ── Top Row: Back + Skip ── */}
+      <View style={styles.topRow}>
+        <BackButton onPress={() => navigation.goBack()} />
+        <SkipButton onPress={() => navigation.navigate('Dislikes')} />
+      </View>
 
       {/* ── Progress ── */}
-      <View style={styles.progressWrap}>
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: '64%' }]} />
-        </View>
-        <Text style={styles.progressLabel}>Step 7 of 11</Text>
-      </View>
+      <ProgressBar progress="60%" step="Step 6 of 10" />
 
       {/* ── Header ── */}
       <View style={styles.header}>
@@ -126,7 +120,11 @@ export default function DietScreen({ navigation }: DietScreenProps) {
       </View>
 
       {/* ── List ── */}
-      <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
+      <ScrollView
+        style={styles.scrollBody}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 16 }}
+      >
         {DIETS.map(diet => {
           const isSel = selected === diet.id;
           return (
@@ -153,65 +151,69 @@ export default function DietScreen({ navigation }: DietScreenProps) {
       </ScrollView>
 
       {/* ── Continue ── */}
-      <TouchableOpacity
-        style={[styles.continueBtn, !selected && styles.continueBtnDisabled]}
-        onPress={() => selected && navigation.navigate('Dislikes')}
-        disabled={!selected}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.continueBtnText}>Continue →</Text>
-      </TouchableOpacity>
+      <ContinueButton onPress={() => navigation.navigate('Dislikes')} />
 
       {/* ── Detail Modal ── */}
-      <Modal visible={!!detailDiet} animationType="slide" onRequestClose={() => setDetailDiet(null)}>
+      <Modal
+        visible={!!detailDiet}
+        animationType="slide"
+        onRequestClose={handleCloseModal}
+        onShow={() => setTimeout(() => setModalReady(true), 100)}
+      >
         {detailDiet && (
           <SafeAreaView style={styles.safeArea}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => setDetailDiet(null)} activeOpacity={0.7}>
-              <Text style={styles.backBtnText}>← Back</Text>
-            </TouchableOpacity>
+            {modalReady ? (
+              <>
+                <BackButton onPress={handleCloseModal} />
 
-            <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-              <Text style={styles.detailEmoji}>{detailDiet.emoji}</Text>
+                <ScrollView
+                  style={styles.scrollBody}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 24 }}
+                >
+                  <Text style={styles.detailEmoji}>{detailDiet.emoji}</Text>
+                  <View style={styles.detailCard}>
+                    <Text style={styles.detailName}>{detailDiet.name}</Text>
+                    <Text style={styles.detailTagline}>{detailDiet.tagline}</Text>
 
-              <View style={styles.detailCard}>
-                <Text style={styles.detailName}>{detailDiet.name}</Text>
-                <Text style={styles.detailTagline}>{detailDiet.tagline}</Text>
-
-                {/* Macro Bar */}
-                <View style={styles.macroBar}>
-                  <View style={[styles.macroSeg, { backgroundColor: COLORS.red,    flex: detailDiet.protein }]} />
-                  <View style={[styles.macroSeg, { backgroundColor: COLORS.orange, flex: detailDiet.carbs }]} />
-                  <View style={[styles.macroSeg, { backgroundColor: COLORS.teal,   flex: detailDiet.fat }]} />
-                </View>
-                <View style={styles.macroLabels}>
-                  {[
-                    { color: COLORS.red,    label: `${detailDiet.protein}% Protein` },
-                    { color: COLORS.orange, label: `${detailDiet.carbs}% Carbs` },
-                    { color: COLORS.teal,   label: `${detailDiet.fat}% Fat` },
-                  ].map(m => (
-                    <View key={m.label} style={styles.macroLabelItem}>
-                      <View style={[styles.macroLabelDot, { backgroundColor: m.color }]} />
-                      <Text style={styles.macroLabelText}>{m.label}</Text>
+                    <View style={styles.macroBar}>
+                      <View style={[styles.macroSeg, { backgroundColor: COLORS.red,    flex: detailDiet.protein }]} />
+                      <View style={[styles.macroSeg, { backgroundColor: COLORS.orange, flex: detailDiet.carbs }]} />
+                      <View style={[styles.macroSeg, { backgroundColor: COLORS.teal,   flex: detailDiet.fat }]} />
                     </View>
-                  ))}
-                </View>
+                    <View style={styles.macroLabels}>
+                      {[
+                        { color: COLORS.red,    label: `${detailDiet.protein}% Protein` },
+                        { color: COLORS.orange, label: `${detailDiet.carbs}% Carbs` },
+                        { color: COLORS.teal,   label: `${detailDiet.fat}% Fat` },
+                      ].map(m => (
+                        <View key={m.label} style={styles.macroLabelItem}>
+                          <View style={[styles.macroLabelDot, { backgroundColor: m.color }]} />
+                          <Text style={styles.macroLabelText}>{m.label}</Text>
+                        </View>
+                      ))}
+                    </View>
 
-                <View style={styles.detailDivider} />
-                <Text style={styles.detailDesc}>{detailDiet.desc}</Text>
-              </View>
-            </ScrollView>
+                    <View style={styles.detailDivider} />
+                    <Text style={styles.detailDesc}>{detailDiet.desc}</Text>
+                  </View>
+                </ScrollView>
 
-            <TouchableOpacity
-              style={[styles.continueBtn, selected === detailDiet.id && styles.continueBtnGreen]}
-              onPress={handleConfirm}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.continueBtnText}>
-                {selected === detailDiet.id
-                  ? `✓ ${detailDiet.name.replace(' Diet', '')} Selected`
-                  : detailDiet.btnLabel}
-              </Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.continueBtn, selected === detailDiet.id && styles.continueBtnGreen]}
+                  onPress={handleConfirm}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.continueBtnText}>
+                    {selected === detailDiet.id
+                      ? `✓ ${detailDiet.name.replace(' Diet', '')} Selected`
+                      : detailDiet.btnLabel}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View style={{ flex: 1, backgroundColor: COLORS.beige }} />
+            )}
           </SafeAreaView>
         )}
       </Modal>
@@ -219,85 +221,3 @@ export default function DietScreen({ navigation }: DietScreenProps) {
     </SafeAreaView>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.beige },
-
-  backBtn: {
-    alignSelf: 'flex-start', marginTop: 14, marginLeft: 22,
-    paddingVertical: 8, paddingHorizontal: 14,
-    backgroundColor: COLORS.bg2, borderWidth: 2, borderColor: COLORS.border,
-    borderRadius: 12, shadowColor: COLORS.border,
-    shadowOffset: { width: 2, height: 2 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3,
-  },
-  backBtnText: { fontSize: 13, fontWeight: '800', color: COLORS.ink },
-
-  progressWrap: { paddingHorizontal: 22, marginTop: 14 },
-  progressTrack: { height: 6, backgroundColor: 'rgba(42,26,26,0.1)', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: COLORS.red, borderRadius: 6 },
-  progressLabel: { fontSize: 10, fontWeight: '700', color: COLORS.inkMuted, textAlign: 'right', marginTop: 4 },
-
-  header: { paddingHorizontal: 22, marginTop: 20 },
-  title: { fontSize: 26, fontWeight: '900', color: COLORS.ink, letterSpacing: -0.8, marginBottom: 4 },
-  subtitle: { fontSize: 13, fontWeight: '500', color: COLORS.inkMuted },
-
-  scrollBody: { flex: 1, paddingHorizontal: 22, marginTop: 14 },
-
-  dietRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: COLORS.bg2, borderWidth: 2.5, borderColor: COLORS.border,
-    borderRadius: 18, padding: 14, marginBottom: 10,
-    shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1, shadowRadius: 0, elevation: 4,
-  },
-  dietRowSelected: { backgroundColor: COLORS.greenSelected, borderColor: COLORS.greenBorder },
-  dietEmoji: { fontSize: 40, width: 52, textAlign: 'center' },
-  dietInfo: { flex: 1 },
-  dietName: { fontSize: 15, fontWeight: '900', color: COLORS.ink, letterSpacing: -0.3, marginBottom: 2 },
-  dietDesc: { fontSize: 11, fontWeight: '500', color: COLORS.inkMuted, marginBottom: 5 },
-  viewLink: { fontSize: 11, fontWeight: '800', color: COLORS.red },
-
-  checkBadge: {
-    width: 22, height: 22, borderRadius: 11,
-    borderWidth: 2, borderColor: COLORS.border,
-    backgroundColor: COLORS.beige,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  checkBadgeSel: { backgroundColor: COLORS.greenBorder, borderColor: COLORS.greenBorder },
-  checkMark: { fontSize: 11, fontWeight: '900', color: 'white' },
-
-  continueBtn: {
-    height: 54, backgroundColor: COLORS.red,
-    borderWidth: 2.5, borderColor: COLORS.border,
-    borderRadius: 18, marginHorizontal: 22, marginBottom: 8,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1, shadowRadius: 0, elevation: 4,
-  },
-  continueBtnDisabled: { opacity: 0.4 },
-  continueBtnGreen: { backgroundColor: COLORS.green },
-  continueBtnText: { fontSize: 15, fontWeight: '900', color: 'white', letterSpacing: -0.3 },
-
-  // Detail
-  detailEmoji: { fontSize: 90, textAlign: 'center', marginBottom: 16 },
-  detailCard: {
-    backgroundColor: COLORS.bg2, borderWidth: 2.5, borderColor: COLORS.border,
-    borderRadius: 24, padding: 20,
-    shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1, shadowRadius: 0, elevation: 4,
-  },
-  detailName: { fontSize: 22, fontWeight: '900', color: COLORS.ink, letterSpacing: -0.8, marginBottom: 4 },
-  detailTagline: { fontSize: 12, fontWeight: '600', color: COLORS.inkMuted, marginBottom: 16 },
-  macroBar: {
-    height: 10, borderRadius: 8, borderWidth: 2, borderColor: COLORS.border,
-    overflow: 'hidden', flexDirection: 'row', marginBottom: 8,
-  },
-  macroSeg: { height: '100%' },
-  macroLabels: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-  macroLabelItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  macroLabelDot: { width: 8, height: 8, borderRadius: 2 },
-  macroLabelText: { fontSize: 9, fontWeight: '700', color: COLORS.inkMuted },
-  detailDivider: { height: 1.5, backgroundColor: 'rgba(42,26,26,0.08)', marginVertical: 14 },
-  detailDesc: { fontSize: 13, fontWeight: '500', color: COLORS.inkMuted, lineHeight: 22 },    
-});

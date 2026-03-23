@@ -4,12 +4,15 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  StyleSheet,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
+import ProgressBar from './components/ProgressBar';
+import ContinueButton from './components/ContinueButton';
+import BackButton from './components/BackButton';
+import { styles, ITEM_H } from './styles/HeightScreen.styles';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -27,19 +30,6 @@ type RootStackParamList = {
 type HeightScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'Height'>;
 };
-
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-const COLORS = {
-  red: '#FF3347',
-  redLight: '#FFE0E3',
-  bg2: '#FFF5F5',
-  ink: '#1A0A0A',
-  inkMuted: '#9A7070',
-  border: '#2A1A1A',
-  beige: '#F5ECD7',
-};
-
-const ITEM_H = 44;
 
 // ─── Generate values ──────────────────────────────────────────────────────────
 const CM_VALUES = Array.from({ length: 101 }, (_, i) => `${i + 130}`);
@@ -77,10 +67,7 @@ function PickerCol({ items, selectedIdx, onSelect }: PickerColProps) {
   }, [items.length, onSelect]);
 
   return (
-    <View
-      style={{ flex: 1 }}
-      onLayout={e => setColHeight(e.nativeEvent.layout.height)}
-    >
+    <View style={{ flex: 1 }} onLayout={e => setColHeight(e.nativeEvent.layout.height)}>
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
@@ -122,8 +109,8 @@ function PickerCol({ items, selectedIdx, onSelect }: PickerColProps) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function HeightScreen({ navigation }: HeightScreenProps) {
-  const [unit, setUnit]       = useState<'cm' | 'ft'>('cm');
-  const [selIdx, setSelIdx]   = useState(50); // default 180cm
+  const [unit, setUnit]           = useState<'cm' | 'ft'>('cm');
+  const [selIdx, setSelIdx]       = useState(50);
   const [colHeight, setColHeight] = useState(0);
 
   const values = unit === 'cm' ? CM_VALUES : FT_VALUES;
@@ -139,21 +126,10 @@ export default function HeightScreen({ navigation }: HeightScreenProps) {
     <SafeAreaView style={styles.safeArea}>
 
       {/* ── Back Button ── */}
-      <TouchableOpacity
-        style={styles.backBtn}
-        onPress={() => navigation.goBack()}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.backBtnText}>← Back</Text>
-      </TouchableOpacity>
+      <BackButton onPress={() => navigation.goBack()} />
 
       {/* ── Progress Bar ── */}
-      <View style={styles.progressWrap}>
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: '36%' }]} />
-        </View>
-        <Text style={styles.progressLabel}>Step 4 of 11</Text>
-      </View>
+      <ProgressBar progress="30%" step="Step 3 of 10" />
 
       {/* ── Header ── */}
       <View style={styles.header}>
@@ -191,140 +167,20 @@ export default function HeightScreen({ navigation }: HeightScreenProps) {
 
       {/* ── Picker Card ── */}
       <View style={styles.pickerCard}>
-        {/* Highlight box */}
         {colHeight > 0 && (
           <View
             style={[styles.pickerHighlight, { top: (colHeight - ITEM_H - 4) / 2 }]}
             pointerEvents="none"
           />
         )}
-        <View
-          style={{ flex: 1 }}
-          onLayout={e => setColHeight(e.nativeEvent.layout.height)}
-        >
-          <PickerCol
-            key={unit}
-            items={values}
-            selectedIdx={selIdx}
-            onSelect={setSelIdx}
-          />
+        <View style={{ flex: 1 }} onLayout={e => setColHeight(e.nativeEvent.layout.height)}>
+          <PickerCol key={unit} items={values} selectedIdx={selIdx} onSelect={setSelIdx} />
         </View>
       </View>
 
       {/* ── Continue Button ── */}
-      <TouchableOpacity
-        style={styles.continueBtn}
-        onPress={() => navigation.navigate('Weight')}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.continueBtnText}>Continue →</Text>
-      </TouchableOpacity>
+      <ContinueButton onPress={() => navigation.navigate('Weight')} />
 
     </SafeAreaView>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.beige },
-
-  // Back Button
-  backBtn: {
-    alignSelf: 'flex-start', marginTop: 14, marginLeft: 22,
-    paddingVertical: 8, paddingHorizontal: 14,
-    backgroundColor: COLORS.bg2, borderWidth: 2, borderColor: COLORS.border,
-    borderRadius: 12,
-    shadowColor: COLORS.border, shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1, shadowRadius: 0, elevation: 3,
-  },
-  backBtnText: { fontSize: 13, fontWeight: '800', color: COLORS.ink },
-
-  // Progress
-  progressWrap: { paddingHorizontal: 22, marginTop: 14 },
-  progressTrack: {
-    height: 6, backgroundColor: 'rgba(42,26,26,0.1)',
-    borderRadius: 6, overflow: 'hidden',
-  },
-  progressFill: { height: '100%', backgroundColor: COLORS.red, borderRadius: 6 },
-  progressLabel: {
-    fontSize: 10, fontWeight: '700',
-    color: COLORS.inkMuted, textAlign: 'right', marginTop: 4,
-  },
-
-  // Header
-  header: { paddingHorizontal: 22, marginTop: 22 },
-  title: { fontSize: 26, fontWeight: '900', color: COLORS.ink, letterSpacing: -0.8, marginBottom: 8 },
-  subtitle: { fontSize: 13, fontWeight: '500', color: COLORS.inkMuted, lineHeight: 20 },
-
-  // Unit Toggle
-  unitToggleWrap: { alignItems: 'center', marginTop: 20 },
-  unitToggle: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.bg2,
-    borderWidth: 2, borderColor: COLORS.border,
-    borderRadius: 14, padding: 3, gap: 2,
-    shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1, shadowRadius: 0, elevation: 4,
-  },
-  unitBtn: {
-    paddingVertical: 6, paddingHorizontal: 20,
-    borderRadius: 10, borderWidth: 2, borderColor: 'transparent',
-  },
-  unitBtnActive: {
-    backgroundColor: COLORS.red,
-    borderColor: COLORS.border,
-  },
-  unitBtnText: { fontSize: 12, fontWeight: '800', color: COLORS.inkMuted },
-  unitBtnTextActive: { color: 'white' },
-
-  // Selected Display
-  selectedDisplay: {
-    flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center',
-    gap: 6, marginHorizontal: 22, marginTop: 16,
-    backgroundColor: COLORS.bg2,
-    borderWidth: 2.5, borderColor: COLORS.border,
-    borderRadius: 18, padding: 14,
-    shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1, shadowRadius: 0, elevation: 4,
-  },
-  selectedVal: { fontSize: 32, fontWeight: '900', color: COLORS.ink, letterSpacing: -1 },
-  selectedUnit: { fontSize: 14, fontWeight: '700', color: COLORS.inkMuted, marginBottom: 4 },
-
-  // Picker Card
-  pickerCard: {
-    backgroundColor: COLORS.bg2,
-    borderWidth: 2.5, borderColor: COLORS.border,
-    borderRadius: 24, marginHorizontal: 22, marginTop: 16,
-    shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1, shadowRadius: 0, elevation: 4,
-    flex: 1, overflow: 'hidden', position: 'relative',
-  },
-  pickerHighlight: {
-    position: 'absolute', left: 20, right: 20,
-    height: ITEM_H + 4,
-    borderWidth: 2.5, borderColor: COLORS.border,
-    borderRadius: 14, backgroundColor: 'transparent', zIndex: 10,
-  },
-  pickerItem: {
-    height: ITEM_H, alignItems: 'center', justifyContent: 'center',
-  },
-  pickerText: {
-    fontSize: 13, fontWeight: '400', color: COLORS.inkMuted, opacity: 0.3,
-  },
-  pickerN1: { fontSize: 14, fontWeight: '500', opacity: 0.55 },
-  pickerN2: { fontSize: 15, fontWeight: '600', opacity: 0.75 },
-  pickerSel: {
-    fontSize: 20, fontWeight: '900', color: COLORS.ink, opacity: 1, letterSpacing: -0.5,
-  },
-
-  // Continue Button
-  continueBtn: {
-    height: 54, backgroundColor: COLORS.red,
-    borderWidth: 2.5, borderColor: COLORS.border,
-    borderRadius: 18, marginHorizontal: 22, marginTop: 16, marginBottom: 8,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1, shadowRadius: 0, elevation: 4,
-  },
-  continueBtnText: { fontSize: 15, fontWeight: '900', color: 'white', letterSpacing: -0.3 },
-});
