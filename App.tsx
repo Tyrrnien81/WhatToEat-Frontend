@@ -15,6 +15,7 @@ import DislikesScreen from './src/screens/SetUp/DislikesScreen';
 import GenderScreen from './src/screens/SetUp/GenderScreen';
 import GoalWeightScreen from './src/screens/SetUp/GoalWeightScreen';
 import HeightScreen from './src/screens/SetUp/HeightScreen';
+import PrivacyPolicyScreen from './src/screens/SetUp/PrivacyPolicyScreen';
 import WeightScreen from './src/screens/SetUp/WeightScreen';
 import WelcomeScreen from './src/screens/SetUp/WelcomeScreen';
 import BottomBar from './src/navigation/BottomBar';
@@ -36,6 +37,7 @@ export type RootStackParamList = {
   Gender: undefined;
   GoalWeight: undefined;
   Height: undefined;
+  PrivacyPolicy: undefined;
   Weight: undefined;
   Welcome: undefined;
   Home: undefined;
@@ -67,6 +69,7 @@ export default function App() {
           <Stack.Screen name="Gender" component={GenderScreen} />
           <Stack.Screen name="GoalWeight" component={GoalWeightScreen} />
           <Stack.Screen name="Height" component={HeightScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
           <Stack.Screen name="Weight" component={WeightScreen} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} />     
           <Stack.Screen name="Home"    component={BottomBar} />
