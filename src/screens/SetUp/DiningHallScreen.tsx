@@ -13,23 +13,11 @@ import ContinueButton from './components/ContinueButton';
 import BackButton from './components/BackButton';
 import { styles } from './styles/DiningHallScreen.styles';
 
-
 type RootStackParamList = {
-  Login: undefined;
-  Signup: undefined;
-  Onboarding: undefined;
-  Home: undefined;
-  Welcome: undefined;
-  Birthday: undefined;
-  Gender: undefined;
-  Height: undefined;
-  Weight: undefined;
-  GoalWeight: undefined;
-  Diet: undefined;
-  Dislikes: undefined;
-  Allergens: undefined;
-  DiningHall: undefined;
-  PrivacyPolicy: undefined;
+  Login: undefined; Signup: undefined; Onboarding: undefined; Home: undefined;
+  Welcome: undefined; Birthday: undefined; Gender: undefined; Height: undefined;
+  Weight: undefined; GoalWeight: undefined; Diet: undefined; Dislikes: undefined;
+  Allergens: undefined; DiningHall: undefined; PrivacyPolicy: undefined;
 };
 
 type DiningHallScreenProps = {
@@ -69,21 +57,15 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
   return (
     <SafeAreaView style={styles.safeArea}>
 
-      {/* ── Back ── */}
       <BackButton onPress={() => navigation.goBack()} />
 
-      {/* ── Progress ── */}
       <ProgressBar progress="90%" step="Step 9 of 10" />
 
-      {/* ── Header ── */}
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Where is your favorite{'\n'}dining hall?</Text>
           {order.length > 0 && (
-            <View style={[
-              styles.counterBadge,
-              order.length === MAX_SELECTIONS && styles.counterBadgeFull,
-            ]}>
+            <View style={[styles.counterBadge, order.length === MAX_SELECTIONS && styles.counterBadgeFull]}>
               <Text style={styles.counterBadgeText}>{order.length} / {MAX_SELECTIONS}</Text>
             </View>
           )}
@@ -91,12 +73,7 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
         <Text style={styles.subtitle}>Choose up to 3 dining halls in order.</Text>
       </View>
 
-      {/* ── Grid ── */}
-      <ScrollView
-        style={styles.scrollBody}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.gridContainer}
-      >
+      <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false} contentContainerStyle={styles.gridContainer}>
         {Array.from({ length: Math.ceil(HALLS.length / 2) }, (_, rowIdx) => (
           <View key={rowIdx} style={styles.gridRow}>
             {HALLS.slice(rowIdx * 2, rowIdx * 2 + 2).map(hall => {
@@ -106,11 +83,7 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
               return (
                 <TouchableOpacity
                   key={hall.id}
-                  style={[
-                    styles.hallCard,
-                    isSel && styles.hallCardSelected,
-                    isDisabled && styles.hallCardMaxed,
-                  ]}
+                  style={[styles.hallCard, isSel && styles.hallCardSelected, isDisabled && styles.hallCardMaxed]}
                   onPress={() => toggle(hall.id)}
                   activeOpacity={isDisabled ? 1 : 0.85}
                   disabled={isDisabled}
@@ -127,8 +100,12 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
         ))}
       </ScrollView>
 
-      {/* ── Continue ── */}
-      <ContinueButton onPress={() => navigation.navigate('PrivacyPolicy')} />
+      {/* ── Disabled until at least one dining hall is selected ── */}
+      <ContinueButton
+        label="Let's Go! 🎉"
+        onPress={() => navigation.navigate('PrivacyPolicy')}
+        disabled={order.length === 0}
+      />
 
     </SafeAreaView>
   );

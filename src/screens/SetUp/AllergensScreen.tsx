@@ -15,20 +15,10 @@ import SkipButton from './components/SkipButton';
 import { styles } from './styles/AllergensScreen.styles';
 
 type RootStackParamList = {
-  Login: undefined;
-  Signup: undefined;
-  Onboarding: undefined;
-  Home: undefined;
-  Welcome: undefined;
-  Birthday: undefined;
-  Gender: undefined;
-  Height: undefined;
-  Weight: undefined;
-  GoalWeight: undefined;
-  Diet: undefined;
-  Dislikes: undefined;
-  Allergens: undefined;
-  DiningHall: undefined;
+  Login: undefined; Signup: undefined; Onboarding: undefined; Home: undefined;
+  Welcome: undefined; Birthday: undefined; Gender: undefined; Height: undefined;
+  Weight: undefined; GoalWeight: undefined; Diet: undefined; Dislikes: undefined;
+  Allergens: undefined; DiningHall: undefined;
 };
 
 type AllergensScreenProps = {
@@ -64,29 +54,19 @@ export default function AllergensScreen({ navigation }: AllergensScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
 
-      {/* ── Top Row: Back + Skip ── */}
       <View style={styles.topRow}>
         <BackButton onPress={() => navigation.goBack()} />
         <SkipButton onPress={() => navigation.navigate('DiningHall')} />
       </View>
 
-      {/* ── Progress ── */}
       <ProgressBar progress="80%" step="Step 8 of 10" />
 
-      {/* ── Header ── */}
       <View style={styles.header}>
         <Text style={styles.title}>Allergens</Text>
-        <Text style={styles.subtitle}>
-          Select foods that you avoid for faith or allergy reasons.
-        </Text>
+        <Text style={styles.subtitle}>Select foods that you avoid for faith or allergy reasons.</Text>
       </View>
 
-      {/* ── Grid ── */}
-      <ScrollView
-        style={styles.scrollBody}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.gridContainer}
-      >
+      <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false} contentContainerStyle={styles.gridContainer}>
         {Array.from({ length: Math.ceil(ALLERGENS.length / 2) }, (_, rowIdx) => (
           <View key={rowIdx} style={styles.gridRow}>
             {ALLERGENS.slice(rowIdx * 2, rowIdx * 2 + 2).map(item => {
@@ -114,8 +94,11 @@ export default function AllergensScreen({ navigation }: AllergensScreenProps) {
         ))}
       </ScrollView>
 
-      {/* ── Continue ── */}
-      <ContinueButton onPress={() => navigation.navigate('DiningHall')} />
+      {/* ── Disabled until at least one allergen is selected ── */}
+      <ContinueButton
+        onPress={() => navigation.navigate('DiningHall')}
+        disabled={selected.size === 0}
+      />
 
     </SafeAreaView>
   );

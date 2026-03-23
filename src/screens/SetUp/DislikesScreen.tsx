@@ -14,19 +14,9 @@ import SkipButton from './components/SkipButton';
 import { styles } from './styles/DislikesScreen.styles';
 
 type RootStackParamList = {
-  Login: undefined;
-  Signup: undefined;
-  Onboarding: undefined;
-  Home: undefined;
-  Welcome: undefined;
-  Birthday: undefined;
-  Gender: undefined;
-  Height: undefined;
-  Weight: undefined;
-  GoalWeight: undefined;
-  Diet: undefined;
-  Dislikes: undefined;
-  Allergens: undefined;
+  Login: undefined; Signup: undefined; Onboarding: undefined; Home: undefined;
+  Welcome: undefined; Birthday: undefined; Gender: undefined; Height: undefined;
+  Weight: undefined; GoalWeight: undefined; Diet: undefined; Dislikes: undefined; Allergens: undefined;
 };
 
 type DislikesScreenProps = {
@@ -41,26 +31,11 @@ type Category = {
 };
 
 const CATEGORIES: Category[] = [
-  {
-    id: 'veg', emoji: '🥦', name: 'Vegetables',
-    items: ['Broccoli', 'Mushroom', 'Eggplant', 'Garlic', 'Bell Peppers', 'Onions', 'Brussels sprouts'],
-  },
-  {
-    id: 'pro', emoji: '🍖', name: 'Proteins',
-    items: ['Chicken', 'Beef', 'Pork', 'Fish', 'Eggs', 'Tofu', 'Greek Yogurt', 'Beans / Legumes'],
-  },
-  {
-    id: 'dai', emoji: '🥛', name: 'Dairy',
-    items: ['Milk', 'Cheese', 'Yogurt', 'Butter', 'Cream'],
-  },
-  {
-    id: 'her', emoji: '🌿', name: 'Herbs & Spices',
-    items: ['Cilantro', 'Ginger', 'Spicy food / Chili', 'Basil', 'Parsley', 'Mint', 'Green Onions'],
-  },
-  {
-    id: 'gra', emoji: '🌾', name: 'Grains & Carbs',
-    items: ['White Rice', 'Bread', 'Pasta', 'Oats', 'Quinoa'],
-  },
+  { id: 'veg', emoji: '🥦', name: 'Vegetables', items: ['Broccoli', 'Mushroom', 'Eggplant', 'Garlic', 'Bell Peppers', 'Onions', 'Brussels sprouts'] },
+  { id: 'pro', emoji: '🍖', name: 'Proteins', items: ['Chicken', 'Beef', 'Pork', 'Fish', 'Eggs', 'Tofu', 'Greek Yogurt', 'Beans / Legumes'] },
+  { id: 'dai', emoji: '🥛', name: 'Dairy', items: ['Milk', 'Cheese', 'Yogurt', 'Butter', 'Cream'] },
+  { id: 'her', emoji: '🌿', name: 'Herbs & Spices', items: ['Cilantro', 'Ginger', 'Spicy food / Chili', 'Basil', 'Parsley', 'Mint', 'Green Onions'] },
+  { id: 'gra', emoji: '🌾', name: 'Grains & Carbs', items: ['White Rice', 'Bread', 'Pasta', 'Oats', 'Quinoa'] },
 ];
 
 export default function DislikesScreen({ navigation }: DislikesScreenProps) {
@@ -80,27 +55,19 @@ export default function DislikesScreen({ navigation }: DislikesScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
 
-      {/* ── Top Row: Back + Skip ── */}
       <View style={styles.topRow}>
         <BackButton onPress={() => navigation.goBack()} />
         <SkipButton onPress={() => navigation.navigate('Allergens')} />
       </View>
 
-      {/* ── Progress ── */}
       <ProgressBar progress="70%" step="Step 7 of 10" />
 
-      {/* ── Header ── */}
       <View style={styles.header}>
         <Text style={styles.title}>Dislikes</Text>
         <Text style={styles.subtitle}>Select any ingredients you'd like to avoid.</Text>
       </View>
 
-      {/* ── Scroll Body ── */}
-      <ScrollView
-        style={styles.scrollBody}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 16 }}
-      >
+      <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
         {CATEGORIES.map(cat => {
           const count = countForCategory(cat);
           return (
@@ -124,9 +91,7 @@ export default function DislikesScreen({ navigation }: DislikesScreenProps) {
                       onPress={() => toggleItem(item)}
                       activeOpacity={0.8}
                     >
-                      <Text style={[styles.tagText, isSel && styles.tagTextSelected]}>
-                        {item}
-                      </Text>
+                      <Text style={[styles.tagText, isSel && styles.tagTextSelected]}>{item}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -136,8 +101,11 @@ export default function DislikesScreen({ navigation }: DislikesScreenProps) {
         })}
       </ScrollView>
 
-      {/* ── Continue ── */}
-      <ContinueButton onPress={() => navigation.navigate('Allergens')} />
+      {/* ── Disabled until at least one dislike is selected ── */}
+      <ContinueButton
+        onPress={() => navigation.navigate('Allergens')}
+        disabled={selected.size === 0}
+      />
 
     </SafeAreaView>
   );
