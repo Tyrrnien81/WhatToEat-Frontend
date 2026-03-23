@@ -22,13 +22,24 @@ export default function CommunityScreen() {
   const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
   const [showNewPost, setShowNewPost] = useState(false);
 
+  // Recursively search through replies at any depth
+  const replyContainsKeyword = (replies: any[], keyword: string): boolean => {
+    return replies.some(r =>
+      r.content.toLowerCase().includes(keyword) ||
+      r.author.toLowerCase().includes(keyword) ||
+      (r.replies?.length && replyContainsKeyword(r.replies, keyword))
+    );
+  };
+
   const filteredPosts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     return posts.filter(post => {
       const matchesTag = selectedTag === null || post.hallTag === selectedTag;
       const matchesSearch =
-        searchQuery.trim() === '' ||
-        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.author.toLowerCase().includes(searchQuery.toLowerCase());
+        q === '' ||
+        post.content.toLowerCase().includes(q) ||
+        post.author.toLowerCase().includes(q) ||
+        replyContainsKeyword(post.replies ?? [], q);
       return matchesTag && matchesSearch;
     });
   }, [posts, selectedTag, searchQuery]);

@@ -24,4 +24,12 @@ export const styles = StyleSheet.create({
         color: C.ink,
         padding: 0,
     },
+    clearBtn: {
+        padding: 4,
+    },
+    clearText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#9A7070',
+    },
 });
