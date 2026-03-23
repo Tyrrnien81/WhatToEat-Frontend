@@ -4,14 +4,13 @@ import {
     Text,
     TouchableOpacity,
     Animated,
-    Platform,
     Linking,
     } from 'react-native';
     import Svg, { Path } from 'react-native-svg';
     import { useNavigation } from '@react-navigation/native';
     import { StackNavigationProp } from '@react-navigation/stack';
     import { RootStackParamList } from '../../../../App';
-    import { DiningHall, MealType } from '../types';
+    import { DiningHall, DiningHallDay, MealType } from '../types';
     import { C } from '../theme';
     import { StatusBadge } from './StatusBadge';
     import { ComboButton } from './ComboButton';
@@ -20,6 +19,7 @@ import {
 
     interface Props {
     hall: DiningHall;
+    day: DiningHallDay;
     }
 
     const ChevronIcon = ({ color = C.inkMuted }: { color?: string }) => (
@@ -30,7 +30,7 @@ import {
 
     const MEALS: MealType[] = ['breakfast', 'lunch', 'dinner'];
 
-    export const DiningHallCard = ({ hall }: Props) => {
+    export const DiningHallCard = ({ hall, day }: Props) => {
     const [expanded, setExpanded] = useState(false);
     const [activeMeal, setActiveMeal] = useState<MealType>('breakfast');
     const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -62,8 +62,8 @@ import {
             <View style={styles.hallInfo}>
             <Text style={styles.hallName} numberOfLines={1}>{hall.name}</Text>
             <View style={styles.hallMeta}>
-                <StatusBadge status={hall.status} />
-                <Text style={styles.hallHours}>{hall.hours}</Text>
+                <StatusBadge status={day.status} />
+                <Text style={styles.hallHours}>{day.hours}</Text>
             </View>
             <TouchableOpacity
                 onPress={() => Linking.openURL(hall.mapsUrl)}
@@ -87,17 +87,17 @@ import {
         {expanded && (
             <View style={styles.hallExpandInner}>
             {/* Closed note */}
-            {hall.closedNote && (
+            {day.closedNote && (
                 <View style={styles.closedNote}>
-                <Text style={styles.closedNoteText}>🔒  {hall.closedNote}</Text>
+                <Text style={styles.closedNoteText}>🔒  {day.closedNote}</Text>
                 </View>
             )}
 
-            {/* AI combo recommendation button */}
-            {/* TODO: aiPickLabel and aiPickName should come from GET /api/recommendations?hallId=hall.id&userId=currentUser */}
+            {/* AI combo recommendation */}
+            {/* TODO: aiPickLabel and aiPickName from GET /api/recommendations?hallId=hall.id&userId=currentUser&date=selectedDate */}
             <ComboButton
-                label={hall.aiPickLabel}
-                title={hall.aiPickName}
+                label={day.aiPickLabel}
+                title={day.aiPickName}
                 onPress={() => navigation.navigate('Meal')}
             />
 
@@ -118,8 +118,8 @@ import {
             </View>
 
             {/* Active meal pane */}
-            {/* TODO: menus should come from GET /api/dining-halls/hall.id/menu?date=today&meal=activeMeal */}
-            <MealPane meal={activeMeal} menu={hall.menus[activeMeal]} />
+            {/* TODO: menus from GET /api/dining-halls/{hall.id}/menu?date=selectedDate&meal=activeMeal */}
+            <MealPane meal={activeMeal} menu={day.menus[activeMeal]} />
             </View>
         )}
         </View>
