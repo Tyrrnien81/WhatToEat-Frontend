@@ -25,7 +25,10 @@ export const styles = StyleSheet.create({
     shadowOpacity: 1, shadowRadius: 0, elevation: 4,
   },
   dietRowSelected: { backgroundColor: COLORS.peachSelected, borderColor: COLORS.peachBorder },
-  dietEmoji: { fontSize: 40, width: 52, textAlign: 'center' },
+
+  // ── Real image replacing emoji ──
+  dietImage: { width: 52, height: 52, borderRadius: 10 },
+
   dietInfo: { flex: 1 },
   dietName: { fontSize: 15, fontWeight: '900', color: COLORS.ink, letterSpacing: -0.3, marginBottom: 2 },
   dietDesc: { fontSize: 11, fontWeight: '500', color: COLORS.inkMuted, marginBottom: 5 },
@@ -51,7 +54,14 @@ export const styles = StyleSheet.create({
   continueBtnGreen: { backgroundColor: COLORS.green },
   continueBtnText: { fontSize: 15, fontWeight: '900', color: 'white', letterSpacing: -0.3 },
 
-  detailEmoji: { fontSize: 90, textAlign: 'center', marginBottom: 16 },
+  // ── Detail modal image replacing large emoji ──
+  detailImage: {
+    width: 120, height: 120,
+    alignSelf: 'center',
+    marginBottom: 16,
+    borderRadius: 20,
+  },
+
   detailCard: {
     backgroundColor: COLORS.bg2, borderWidth: 2.5, borderColor: COLORS.border,
     borderRadius: 24, padding: 20,
