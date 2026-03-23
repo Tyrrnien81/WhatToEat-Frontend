@@ -2,32 +2,51 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { C } from './theme';
 import { SortOption, StatusType } from './types';
-import { DINING_HALLS } from './data/diningHallsData';
-// TODO: Replace DINING_HALLS import above with a TanStack Query hook:
-//   const { data: halls } = useQuery({ queryKey: ['diningHalls'], queryFn: fetchDiningHalls })
-//   where fetchDiningHalls → GET /api/dining-halls
-
+import { DINING_HALLS, dateKey } from './data/diningHallsData';
+// TODO: Replace with TanStack Query:
+//   const { data: halls } = useQuery({ queryKey: ['diningHalls', selectedDate], queryFn: () => fetchDiningHalls(selectedDate) })
 import { DiningHallCard } from './components/DiningHallCard';
 import { SortDropdown } from './components/SortDropdown';
+import { DateTabBar, DateTab } from './components/DateTabBar';
 import { styles } from './styles/DiningHallsScreen.styles';
+
+// ─── Date helpers ─────────────────────────────────────────────────────────────
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function buildDateTabs(): DateTab[] {
+  return Array.from({ length: 5 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    return {
+      key: dateKey(i),
+      dayLabel: i === 0 ? 'Today' : DAY_LABELS[d.getDay()],
+      dateNum: d.getDate(),
+      month: MONTH_LABELS[d.getMonth()],
+    };
+  });
+}
+
+const DATE_TABS = buildDateTabs();
 
 export default function DiningHallsScreen() {
   const insets = useSafeAreaInsets();
   const [sortBy, setSortBy] = useState<SortOption>('Relevance');
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(DATE_TABS[0].key);
 
   const sortedHalls = [...DINING_HALLS].sort((a, b) => {
+    const dayA = a.days[selectedDate];
+    const dayB = b.days[selectedDate];
+    if (!dayA || !dayB) return 0;
     if (sortBy === 'Open Now') {
       const rank = (s: StatusType) => (s === 'open' ? 0 : s === 'soon' ? 1 : 2);
-      return rank(a.status) - rank(b.status);
+      return rank(dayA.status) - rank(dayB.status);
     }
     if (sortBy === 'Closest') {
-      // TODO: replace with real distance sort using device GPS
-      // import * as Location from 'expo-location';
-      // sort by haversine(userCoords, hall.coords)
+      // TODO: replace with real GPS distance sort
       return Math.random() - 0.5;
     }
     return 0;
@@ -39,8 +58,14 @@ export default function DiningHallsScreen() {
       <View style={styles.screenHeader}>
         <Text style={styles.screenTitle}>Dining Halls</Text>
         <Text style={styles.screenSubtitle}>6 locations on campus · Updated just now</Text>
-        {/* TODO: replace subtitle with live "last fetched" timestamp from API response */}
       </View>
+
+      {/* Date tab bar */}
+      <DateTabBar
+        tabs={DATE_TABS}
+        selectedDate={selectedDate}
+        onSelect={setSelectedDate}
+      />
 
       {/* Sort trigger */}
       <View style={styles.sortRow}>
@@ -57,7 +82,7 @@ export default function DiningHallsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Sort dropdown modal */}
+      {/* Sort dropdown */}
       <SortDropdown
         visible={dropdownVisible}
         current={sortBy}
@@ -71,9 +96,11 @@ export default function DiningHallsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {sortedHalls.map(hall => (
-          <DiningHallCard key={hall.id} hall={hall} />
-        ))}
+        {sortedHalls.map(hall => {
+          const day = hall.days[selectedDate];
+          if (!day) return null;
+          return <DiningHallCard key={hall.id} hall={hall} day={day} />;
+        })}
       </ScrollView>
     </View>
   );

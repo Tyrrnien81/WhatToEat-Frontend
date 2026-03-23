@@ -20,16 +20,22 @@ export interface MenuItem {
     categories: MenuCategory[];
     }
 
+    export interface DiningHallDay {
+    status: StatusType;
+    hours: string;
+    closedNote?: string;
+    aiPickLabel: string;
+    aiPickName: string;
+    menus: Record<MealType, MealMenu>;
+    }
+
     export interface DiningHall {
     id: string;
     name: string;
     emoji: string;
     emojiBg: string;
-    status: StatusType;
-    hours: string;
-    aiPickLabel: string;
-    aiPickName: string;
-    closedNote?: string;
     mapsUrl: string;
-    menus: Record<MealType, MealMenu>;
+    // Keyed by date string 'YYYY-MM-DD'
+    // TODO: Replace with API → GET /api/dining-halls/{id}/menu?date=YYYY-MM-DD
+    days: Record<string, DiningHallDay>;
 }
