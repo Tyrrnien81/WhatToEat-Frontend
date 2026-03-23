@@ -15,6 +15,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import AuthHero from './components/AuthHero';
 import { COLORS } from '../../constants/COLORS';
 import { styles } from './styles/LoginScreen.styles';
+import { useAuth } from '../../context/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -38,6 +39,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [pwErr, setPwErr]       = useState('');
   const [loading, setLoading]   = useState(false);
   const [success, setSuccess]   = useState(false);
+
+  const { setIsGuest } = useAuth();
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
@@ -74,6 +77,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     try {
       await new Promise(resolve => setTimeout(resolve, 1600));
       setSuccess(true);
+      setIsGuest(false);
       setTimeout(() => navigation.replace('Home'), 600);
     } catch (err) {
       setEmailErr('Invalid email or password');
@@ -188,7 +192,10 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             {/* Guest */}
             <TouchableOpacity
               style={styles.btnGuest}
-              onPress={() => navigation.replace('Home')}
+              onPress={() => {
+                setIsGuest(true);
+                navigation.replace('Home');
+              }}
               activeOpacity={0.7}
             >
               <Text style={styles.btnGuestText}>Continue as guest →</Text>
