@@ -100,12 +100,8 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
         ))}
       </ScrollView>
 
-      {/* ── Disabled until at least one dining hall is selected ── */}
-      <ContinueButton
-        label="Let's Go! 🎉"
-        onPress={() => navigation.navigate('PrivacyPolicy')}
-        disabled={order.length === 0}
-      />
+      {/* ── Continue Button ── */}
+      <ContinueButton onPress={() => navigation.navigate('PrivacyPolicy')} />
 
     </SafeAreaView>
   );
