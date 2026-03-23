@@ -29,6 +29,7 @@ type RootStackParamList = {
   Dislikes: undefined;
   Allergens: undefined;
   DiningHall: undefined;
+  PrivacyPolicy: undefined;
 };
 
 type DiningHallScreenProps = {
@@ -126,12 +127,8 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
         ))}
       </ScrollView>
 
-      {/* ── Let's Go Button ── */}
-      <ContinueButton
-        label="Let's Go! 🎉"
-        onPress={() => navigation.navigate('Home')}
-        disabled={order.length === 0}
-      />
+      {/* ── Continue ── */}
+      <ContinueButton onPress={() => navigation.navigate('PrivacyPolicy')} />
 
     </SafeAreaView>
   );
