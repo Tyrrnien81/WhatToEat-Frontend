@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
     shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1, shadowRadius: 0, elevation: 4,
   },
-  hallCardSelected: { backgroundColor: COLORS.greenSelected, borderColor: COLORS.greenBorder },
+  hallCardSelected: { backgroundColor: COLORS.redLight, borderColor: COLORS.red },
   hallCardMaxed: { opacity: 0.4 },
 
   badge: {

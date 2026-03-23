@@ -26,18 +26,18 @@ type AllergensScreenProps = {
 };
 
 const ALLERGENS = [
-  { id: 'none', label: 'Not a picky eater!', image: null, emoji: '😄' },
-  { id: 'soy', label: 'Soy', image: require('../../../assets/Reference_Images/Allergens_Soy.png'), emoji: null },
-  { id: 'peanuts', label: 'Peanuts', image: require('../../../assets/Reference_Images/Allergens_Peanuts.png'), emoji: null },
-  { id: 'treenuts', label: 'Tree nuts', image: require('../../../assets/Reference_Images/Allergens_TreeNuts.png'), emoji: null },
-  { id: 'halal', label: 'Halal', image: require('../../../assets/Reference_Images/Allergens_Halal.png'), emoji: null },
-  { id: 'kosher', label: 'Kosher', image: require('../../../assets/Reference_Images/Allergens_Kosher.png'), emoji: null },
-  { id: 'dairy', label: 'Dairy Free', image: require('../../../assets/Reference_Images/Allergens_DairyFree.png'), emoji: null },
-  { id: 'gluten', label: 'Gluten Free', image: require('../../../assets/Reference_Images/Allergens_GlutenFree.png'), emoji: null },
+  { id: 'none',      label: 'Not a picky eater!', image: null, emoji: '😄' },
+  { id: 'soy',       label: 'Soy',           image: require('../../../assets/Reference_Images/Allergens_Soy.png'),          emoji: null },
+  { id: 'peanuts',   label: 'Peanuts',        image: require('../../../assets/Reference_Images/Allergens_Peanuts.png'),      emoji: null },
+  { id: 'treenuts',  label: 'Tree nuts',      image: require('../../../assets/Reference_Images/Allergens_TreeNuts.png'),     emoji: null },
+  { id: 'halal',     label: 'Halal',          image: require('../../../assets/Reference_Images/Allergens_Halal.png'),        emoji: null },
+  { id: 'kosher',    label: 'Kosher',         image: require('../../../assets/Reference_Images/Allergens_Kosher.png'),       emoji: null },
+  { id: 'dairy',     label: 'Dairy Free',     image: require('../../../assets/Reference_Images/Allergens_DairyFree.png'),    emoji: null },
+  { id: 'gluten',    label: 'Gluten Free',    image: require('../../../assets/Reference_Images/Allergens_GlutenFree.png'),   emoji: null },
   { id: 'shellfish', label: 'Shellfish Free', image: require('../../../assets/Reference_Images/Allergens_ShellfishFree.png'), emoji: null },
-  { id: 'fish', label: 'Fish Free', image: require('../../../assets/Reference_Images/Allergens_FishFree.png'), emoji: null },
-  { id: 'egg', label: 'Egg Free', image: require('../../../assets/Reference_Images/Allergens_EggFree.png'), emoji: null },
-  { id: 'other', label: 'Other', image: null, emoji: '···' },
+  { id: 'fish',      label: 'Fish Free',      image: require('../../../assets/Reference_Images/Allergens_FishFree.png'),     emoji: null },
+  { id: 'egg',       label: 'Egg Free',       image: require('../../../assets/Reference_Images/Allergens_EggFree.png'),      emoji: null },
+  { id: 'other',     label: 'Other',          image: null, emoji: '···' },
 ];
 
 export default function AllergensScreen({ navigation }: AllergensScreenProps) {
@@ -66,7 +66,11 @@ export default function AllergensScreen({ navigation }: AllergensScreenProps) {
         <Text style={styles.subtitle}>Select foods that you avoid for faith or allergy reasons.</Text>
       </View>
 
-      <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false} contentContainerStyle={styles.gridContainer}>
+      <ScrollView
+        style={styles.scrollBody}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.gridContainer}
+      >
         {Array.from({ length: Math.ceil(ALLERGENS.length / 2) }, (_, rowIdx) => (
           <View key={rowIdx} style={styles.gridRow}>
             {ALLERGENS.slice(rowIdx * 2, rowIdx * 2 + 2).map(item => {
@@ -78,12 +82,21 @@ export default function AllergensScreen({ navigation }: AllergensScreenProps) {
                   onPress={() => toggle(item.id)}
                   activeOpacity={0.85}
                 >
-                  <View style={[styles.checkBadge, isSel && styles.checkBadgeSel]}>
-                    {isSel && <Text style={styles.checkMark}>✓</Text>}
+                  {/* ── Top row: name + check badge ── */}
+                  <View style={styles.cardTopRow}>
+                    <Text style={styles.allergenName}>{item.label}</Text>
+                    <View style={[styles.checkBadge, isSel && styles.checkBadgeSel]}>
+                      {isSel && <Text style={styles.checkMark}>✓</Text>}
+                    </View>
                   </View>
-                  <Text style={styles.allergenName}>{item.label}</Text>
+
+                  {/* ── Bottom: image or emoji ── */}
                   {item.image ? (
-                    <Image source={item.image} style={styles.allergenImage} resizeMode="contain" />
+                    <Image
+                      source={item.image}
+                      style={styles.allergenImage}
+                      resizeMode="contain"
+                    />
                   ) : (
                     <Text style={styles.allergenEmoji}>{item.emoji}</Text>
                   )}

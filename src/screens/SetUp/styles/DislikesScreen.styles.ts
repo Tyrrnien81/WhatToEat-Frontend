@@ -40,10 +40,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 6, paddingHorizontal: 12,
     borderWidth: 2, borderColor: COLORS.border,
     borderRadius: 20, backgroundColor: COLORS.beige,
-    shadowColor: COLORS.border, shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1, shadowRadius: 0, elevation: 2,
   },
-  tagSelected: { backgroundColor: COLORS.greenSelected, borderColor: COLORS.greenBorder },
+  tagSelected: { backgroundColor: COLORS.redLight, borderColor: COLORS.red },
   tagText: { fontSize: 11, fontWeight: '700', color: COLORS.ink },
   tagTextSelected: { color: COLORS.ink },
 });

@@ -20,32 +20,58 @@ export const styles = StyleSheet.create({
   gridRow: { flexDirection: 'row', gap: 12 },
 
   allergenCard: {
-    flex: 1, height: 120,
+    flex: 1,
+    height: 120,
     backgroundColor: COLORS.bg2,
-    borderWidth: 2.5, borderColor: COLORS.border,
-    borderRadius: 20, padding: 12,
+    borderWidth: 2.5,
+    borderColor: COLORS.border,
+    borderRadius: 20,
+    padding: 12,
+    // Use column layout: name top-left, image bottom-right
+    flexDirection: 'column',
     justifyContent: 'space-between',
-    position: 'relative',
-    shadowColor: COLORS.border, shadowOffset: { width: 4, height: 4 },
+    shadowColor: COLORS.border,
+    shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1, shadowRadius: 0, elevation: 4,
   },
   allergenCardSelected: {
-    backgroundColor: COLORS.greenSelected,
-    borderColor: COLORS.greenBorder,
+    backgroundColor: COLORS.redLight,
+    borderColor: COLORS.red,
   },
+
+  // Top row inside card: name + check badge
+  cardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+
   checkBadge: {
-    position: 'absolute', top: 10, right: 10,
     width: 20, height: 20, borderRadius: 10,
     borderWidth: 2, borderColor: COLORS.border,
     backgroundColor: COLORS.beige,
     alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
   },
-  checkBadgeSel: { backgroundColor: COLORS.greenBorder, borderColor: COLORS.greenBorder },
+  checkBadgeSel: { backgroundColor: COLORS.red, borderColor: COLORS.red },
   checkMark: { fontSize: 10, fontWeight: '900', color: 'white' },
+
   allergenName: {
-    fontSize: 13, fontWeight: '800', color: COLORS.ink,
-    letterSpacing: -0.3, lineHeight: 17, paddingRight: 24,
+    fontSize: 12, fontWeight: '800', color: COLORS.ink,
+    letterSpacing: -0.3, lineHeight: 16,
+    flex: 1, paddingRight: 6,
   },
-  allergenImage: { width: 52, height: 52, alignSelf: 'flex-end' },
-  allergenEmoji: { fontSize: 32, textAlign: 'right', alignSelf: 'flex-end' },
+
+  // Image sits at bottom-right
+  allergenImage: {
+    width: 52, height: 52,
+    alignSelf: 'flex-end',
+  },
+
+  // Emoji fallback also bottom-right
+  allergenEmoji: {
+    fontSize: 36,
+    alignSelf: 'flex-end',
+    textAlign: 'right',
+  },
 });
