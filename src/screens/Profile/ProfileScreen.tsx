@@ -57,21 +57,14 @@ const StatCard = ({ value, label, bg, accent }: { value: string; label: string; 
 const SectionRow = ({
   label,
   value,
-  onPress,
 }: {
   label: string;
   value?: string;
-  onPress?: () => void;
 }) => (
-  <TouchableOpacity style={styles.sectionRow} onPress={onPress} activeOpacity={0.7}>
+  <View style={styles.sectionRow}>
     <Text style={styles.sectionRowLabel}>{label}</Text>
-    <View style={styles.sectionRowRight}>
-      {value ? <Text style={styles.sectionRowValue}>{value}</Text> : null}
-      <View style={styles.chevronWrap}>
-        <IconChevron />
-      </View>
-    </View>
-  </TouchableOpacity>
+    {value ? <Text style={styles.sectionRowValue}>{value}</Text> : null}
+  </View>
 );
 
 // ─── Toggle Row ───────────────────────────────────────────────────────────────
