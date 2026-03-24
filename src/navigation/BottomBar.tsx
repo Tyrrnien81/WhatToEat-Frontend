@@ -3,9 +3,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import HomeScreen from '../screens/HomeScreen/HomeScreenMain';
-import DiningHallsScreen from '../screens/DiningHallsScreen';
-import ScanScreen from '../screens/ScanScreen';
-import CommunityScreen from '../screens/CommunityScreen';
+import DiningHallsScreen from '../screens/DiningHall/DiningHallsScreen';
+import ScanScreen from '../screens/Scan/ScanScreen';
+import CommunityScreen from '../screens/Community/CommunityScreen';
 import MyProfileScreen from '../screens/MyProfileScreen';
 import { colors } from '../constants/theme';
 
