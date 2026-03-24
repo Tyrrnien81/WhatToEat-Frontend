@@ -6,7 +6,7 @@ import HomeScreen from '../screens/HomeScreen/HomeScreenMain';
 import DiningHallsScreen from '../screens/DiningHall/DiningHallsScreen';
 import ScanScreen from '../screens/Scan/ScanScreen';
 import CommunityScreen from '../screens/Community/CommunityScreen';
-import MyProfileScreen from '../screens/MyProfileScreen';
+import MyProfileScreen from '../screens/Profile/ProfileScreen';
 import { colors } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
