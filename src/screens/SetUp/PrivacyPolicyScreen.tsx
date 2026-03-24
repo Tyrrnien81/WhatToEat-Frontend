@@ -7,7 +7,7 @@ import {
   Image,
   Modal,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import BackButton from './components/BackButton';
 import ProgressBar from './components/ProgressBar';
@@ -143,6 +143,61 @@ const FULL_POLICY_SECTIONS: FullPolicySectionData[] = [
   },
 ];
 
+// ─── Full Policy Modal (uses insets directly) ─────────────────────────────────
+function FullPolicyModal({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+
+        <BackButton onPress={onClose} />
+
+        <View style={styles.fullPolicyHeader}>
+          <Text style={styles.fullPolicyTitle}>Full Privacy Policy</Text>
+          <View style={styles.pageDivider} />
+          <Text style={styles.pageSubtitle}>Last updated March 2026 · WhatToEat App</Text>
+        </View>
+
+        <ScrollView
+          style={styles.fullPolicyBody}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 32 }}
+        >
+          {FULL_POLICY_SECTIONS.map((section, i) => (
+            <View key={i} style={styles.fpSection}>
+              <View style={styles.fpSectionHeader}>
+                <View style={[styles.fpSectionIcon, { backgroundColor: section.iconBg }]}>
+                  <Text style={styles.fpSectionIconText}>{section.icon}</Text>
+                </View>
+                <Text style={styles.fpSectionTitle}>{section.title}</Text>
+              </View>
+              <View style={styles.fpDivider} />
+              <Text style={styles.fpSectionText}>{section.text}</Text>
+            </View>
+          ))}
+
+          <Text style={styles.fpFooter}>
+            By using WhatToEat, you agree to this Privacy Policy.{'\n'}
+            Questions? Contact us at privacy@whattoeat.app
+          </Text>
+        </ScrollView>
+
+      </View>
+    </Modal>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function PrivacyPolicyScreen({ navigation }: PrivacyPolicyScreenProps) {
   const [modalKey, setModalKey] = useState<PolicyKey | null>(null);
@@ -225,6 +280,8 @@ export default function PrivacyPolicyScreen({ navigation }: PrivacyPolicyScreenP
       </View>
 
       {/* ── Policy Detail Bottom Sheet ── */}
+      {/* NOTE: This is a transparent bottom sheet, NOT a full-screen modal,
+          so it does NOT use SafeAreaView — no fix needed here. */}
       <Modal
         visible={modalKey !== null}
         transparent
@@ -271,47 +328,10 @@ export default function PrivacyPolicyScreen({ navigation }: PrivacyPolicyScreenP
       </Modal>
 
       {/* ── Full Policy Page ── */}
-      <Modal
+      <FullPolicyModal
         visible={showFullPolicy}
-        animationType="slide"
-        onRequestClose={() => setShowFullPolicy(false)}
-      >
-        <SafeAreaView style={styles.safeArea}>
-
-          <BackButton onPress={() => setShowFullPolicy(false)} />
-
-          <View style={styles.fullPolicyHeader}>
-            <Text style={styles.fullPolicyTitle}>Full Privacy Policy</Text>
-            <View style={styles.pageDivider} />
-            <Text style={styles.pageSubtitle}>Last updated March 2026 · WhatToEat App</Text>
-          </View>
-
-          <ScrollView
-            style={styles.fullPolicyBody}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 32 }}
-          >
-            {FULL_POLICY_SECTIONS.map((section, i) => (
-              <View key={i} style={styles.fpSection}>
-                <View style={styles.fpSectionHeader}>
-                  <View style={[styles.fpSectionIcon, { backgroundColor: section.iconBg }]}>
-                    <Text style={styles.fpSectionIconText}>{section.icon}</Text>
-                  </View>
-                  <Text style={styles.fpSectionTitle}>{section.title}</Text>
-                </View>
-                <View style={styles.fpDivider} />
-                <Text style={styles.fpSectionText}>{section.text}</Text>
-              </View>
-            ))}
-
-            <Text style={styles.fpFooter}>
-              By using WhatToEat, you agree to this Privacy Policy.{'\n'}
-              Questions? Contact us at privacy@whattoeat.app
-            </Text>
-          </ScrollView>
-
-        </SafeAreaView>
-      </Modal>
+        onClose={() => setShowFullPolicy(false)}
+      />
 
     </SafeAreaView>
   );

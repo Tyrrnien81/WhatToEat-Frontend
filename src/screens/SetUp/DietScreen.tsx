@@ -8,6 +8,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import ProgressBar from './components/ProgressBar';
 import ContinueButton from './components/ContinueButton';
@@ -75,20 +76,96 @@ const DIETS: Diet[] = [
   },
 ];
 
+// ─── Modal Inner Content (uses insets directly) ───────────────────────────────
+function DietDetailModal({
+  diet,
+  selected,
+  onClose,
+  onConfirm,
+}: {
+  diet: Diet;
+  selected: string | null;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      style={[
+        styles.safeArea,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+    >
+      <BackButton onPress={onClose} />
+
+      <ScrollView
+        style={styles.scrollBody}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
+        {/* ── Real image in detail view ── */}
+        <Image
+          source={diet.image}
+          style={styles.detailImage}
+          resizeMode="contain"
+        />
+
+        <View style={styles.detailCard}>
+          <Text style={styles.detailName}>{diet.name}</Text>
+          <Text style={styles.detailTagline}>{diet.tagline}</Text>
+
+          <View style={styles.macroBar}>
+            <View style={[styles.macroSeg, { backgroundColor: COLORS.red,    flex: diet.protein }]} />
+            <View style={[styles.macroSeg, { backgroundColor: COLORS.orange, flex: diet.carbs }]} />
+            <View style={[styles.macroSeg, { backgroundColor: COLORS.teal,   flex: diet.fat }]} />
+          </View>
+          <View style={styles.macroLabels}>
+            {[
+              { color: COLORS.red,    label: `${diet.protein}% Protein` },
+              { color: COLORS.orange, label: `${diet.carbs}% Carbs` },
+              { color: COLORS.teal,   label: `${diet.fat}% Fat` },
+            ].map(m => (
+              <View key={m.label} style={styles.macroLabelItem}>
+                <View style={[styles.macroLabelDot, { backgroundColor: m.color }]} />
+                <Text style={styles.macroLabelText}>{m.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.detailDivider} />
+          <Text style={styles.detailDesc}>{diet.desc}</Text>
+        </View>
+      </ScrollView>
+
+      <TouchableOpacity
+        style={[styles.continueBtn, selected === diet.id && styles.continueBtnGreen]}
+        onPress={onConfirm}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.continueBtnText}>
+          {selected === diet.id
+            ? `✓ ${diet.name.replace(' Diet', '')} Selected`
+            : diet.btnLabel}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function DietScreen({ navigation }: DietScreenProps) {
   const [selected, setSelected]     = useState<string | null>(null);
   const [detailDiet, setDetailDiet] = useState<Diet | null>(null);
-  const [modalReady, setModalReady] = useState(false);
 
   const handleConfirm = () => {
     if (detailDiet) {
       setSelected(detailDiet.id);
-      setTimeout(() => { setDetailDiet(null); setModalReady(false); }, 400);
+      setTimeout(() => setDetailDiet(null), 400);
     }
   };
 
-  const handleCloseModal = () => { setDetailDiet(null); setModalReady(false); };
+  const handleCloseModal = () => setDetailDiet(null);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -123,7 +200,6 @@ export default function DietScreen({ navigation }: DietScreenProps) {
               onPress={() => setSelected(diet.id)}
               activeOpacity={0.85}
             >
-              {/* ── Real image instead of emoji ── */}
               <Image
                 source={diet.image}
                 style={styles.dietImage}
@@ -155,69 +231,14 @@ export default function DietScreen({ navigation }: DietScreenProps) {
         visible={!!detailDiet}
         animationType="slide"
         onRequestClose={handleCloseModal}
-        onShow={() => setTimeout(() => setModalReady(true), 100)}
       >
         {detailDiet && (
-          <SafeAreaView style={styles.safeArea}>
-            {modalReady ? (
-              <>
-                <BackButton onPress={handleCloseModal} />
-
-                <ScrollView
-                  style={styles.scrollBody}
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingBottom: 24 }}
-                >
-                  {/* ── Real image in detail view ── */}
-                  <Image
-                    source={detailDiet.image}
-                    style={styles.detailImage}
-                    resizeMode="contain"
-                  />
-
-                  <View style={styles.detailCard}>
-                    <Text style={styles.detailName}>{detailDiet.name}</Text>
-                    <Text style={styles.detailTagline}>{detailDiet.tagline}</Text>
-
-                    <View style={styles.macroBar}>
-                      <View style={[styles.macroSeg, { backgroundColor: COLORS.red,    flex: detailDiet.protein }]} />
-                      <View style={[styles.macroSeg, { backgroundColor: COLORS.orange, flex: detailDiet.carbs }]} />
-                      <View style={[styles.macroSeg, { backgroundColor: COLORS.teal,   flex: detailDiet.fat }]} />
-                    </View>
-                    <View style={styles.macroLabels}>
-                      {[
-                        { color: COLORS.red,    label: `${detailDiet.protein}% Protein` },
-                        { color: COLORS.orange, label: `${detailDiet.carbs}% Carbs` },
-                        { color: COLORS.teal,   label: `${detailDiet.fat}% Fat` },
-                      ].map(m => (
-                        <View key={m.label} style={styles.macroLabelItem}>
-                          <View style={[styles.macroLabelDot, { backgroundColor: m.color }]} />
-                          <Text style={styles.macroLabelText}>{m.label}</Text>
-                        </View>
-                      ))}
-                    </View>
-
-                    <View style={styles.detailDivider} />
-                    <Text style={styles.detailDesc}>{detailDiet.desc}</Text>
-                  </View>
-                </ScrollView>
-
-                <TouchableOpacity
-                  style={[styles.continueBtn, selected === detailDiet.id && styles.continueBtnGreen]}
-                  onPress={handleConfirm}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.continueBtnText}>
-                    {selected === detailDiet.id
-                      ? `✓ ${detailDiet.name.replace(' Diet', '')} Selected`
-                      : detailDiet.btnLabel}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <View style={{ flex: 1, backgroundColor: COLORS.beige }} />
-            )}
-          </SafeAreaView>
+          <DietDetailModal
+            diet={detailDiet}
+            selected={selected}
+            onClose={handleCloseModal}
+            onConfirm={handleConfirm}
+          />
         )}
       </Modal>
 
