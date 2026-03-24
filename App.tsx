@@ -24,6 +24,7 @@ import HomeScreenMeal from './src/screens/HomeScreen/HomeScreenMeal';
 import HomeScreenConfirm from './src/screens/HomeScreen/HomeScreenConfirm';
 import HomeScreenAdd from './src/screens/HomeScreen/HomeScreenAdd';
 import ScanScreen from './src/screens/Scan/ScanScreen';
+import EditProfileScreen from './src/screens/Profile/EditProfileScreen';
 
 export type RootStackParamList = {
   ForgotPassword: undefined;
@@ -47,6 +48,7 @@ export type RootStackParamList = {
   Confirm: undefined;
   Add: undefined;
   Scan: undefined;
+  EditProfile: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -81,6 +83,7 @@ export default function App() {
             <Stack.Screen name="Confirm"        component={HomeScreenConfirm} />
             <Stack.Screen name="Add"            component={HomeScreenAdd} />
             <Stack.Screen name="Scan"           component={ScanScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </AuthProvider>

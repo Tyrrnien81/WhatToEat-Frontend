@@ -10,6 +10,9 @@ import {
   Switch,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../../App';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const COLORS = {
@@ -104,6 +107,7 @@ const TagPill = ({ label, color }: { label: string; color: string }) => (
 export default function ProfileScreen() {
   const [notifications, setNotifications] = useState(true);
   const [weeklyReport, setWeeklyReport] = useState(false);
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -116,7 +120,7 @@ export default function ProfileScreen() {
         {/* ── Header ── */}
         <View style={styles.header}>
           <Text style={styles.screenTitle}>Profile</Text>
-          <TouchableOpacity style={styles.editBtn} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.editBtn} activeOpacity={0.8} onPress={() => navigation.navigate('EditProfile')}>
             <IconEdit />
             <Text style={styles.editBtnText}>Edit</Text>
           </TouchableOpacity>
