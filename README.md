@@ -37,6 +37,7 @@ npm install @react-navigation/native @react-navigation/stack @react-navigation/b
 npm install @tanstack/react-query axios zustand
 npm install -D @types/react @types/react-native
 npx expo install react-native-screens react-native-safe-area-context react-native-svg react-native-gesture-handler
+npx expo install expo-camera
 ```
 
 ### 3. Start the dev server
