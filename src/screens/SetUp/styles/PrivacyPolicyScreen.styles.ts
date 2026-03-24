@@ -5,10 +5,16 @@ export const styles = StyleSheet.create({
 
   safeArea: { flex: 1, backgroundColor: COLORS.beige },
 
-  // Screen Body
-  screenBody: {
-    flex: 1, paddingHorizontal: 22, marginTop: 12,
-    overflow: 'hidden', gap: 12,
+  // FIX: replaced screenBody (fixed View with overflow:hidden) with
+  // a ScrollView + scrollContent so the agreement note is never clipped
+  scrollArea: {
+    flex: 1,
+    paddingHorizontal: 22,
+  },
+  scrollContent: {
+    paddingTop: 12,
+    paddingBottom: 16,
+    gap: 12,
   },
 
   // Page Header

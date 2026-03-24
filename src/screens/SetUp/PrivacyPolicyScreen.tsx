@@ -159,9 +159,15 @@ export default function PrivacyPolicyScreen({ navigation }: PrivacyPolicyScreenP
       {/* ── Progress Bar ── */}
       <ProgressBar progress="100%" step="Step 10 of 10" />
 
-      {/* ── Screen Body ── */}
-      <View style={styles.screenBody}>
-
+      {/* ── Scrollable Body ── */}
+      {/* FIX: moved screenBody content into a ScrollView so the agreement
+          note is never clipped by overflow:hidden on a fixed-height View */}
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Page Header */}
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>Privacy Policy</Text>
@@ -204,14 +210,14 @@ export default function PrivacyPolicyScreen({ navigation }: PrivacyPolicyScreenP
           ))}
         </View>
 
-        {/* Agreement Note */}
+        {/* Agreement Note — now always fully visible inside the ScrollView */}
         <Text style={styles.agreementNote}>
           By tapping <Text style={styles.agreementBold}>I Agree</Text>, you accept our{' '}
           <Text style={styles.agreementLink}>Privacy Policy</Text> and{' '}
           <Text style={styles.agreementLink}>Terms of Service</Text>.
         </Text>
 
-      </View>
+      </ScrollView>
 
       {/* ── Bottom Actions ── */}
       <View style={styles.bottomActions}>
