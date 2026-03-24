@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import BackButton from './components/BackButton';
 import ReturnToLogin from './components/ReturnToLogin';
 import AuthHeader from './components/AuthHeader';
@@ -140,9 +141,11 @@ export default function ResetPasswordScreen({ navigation }: ResetPasswordScreenP
                   autoCorrect={false}
                 />
                 <Pressable style={styles.eyeBtn} onPress={() => setShowNew(p => !p)} hitSlop={8}>
-                  <Text style={[styles.eyeIcon, !showNew && styles.eyeIconOff]}>
-                    {showNew ? '👁️' : '🙈'}
-                  </Text>
+                  <Ionicons
+                    name={showNew ? 'eye-outline' : 'eye-off-outline'}
+                    size={22}
+                    color={COLORS.inkMuted}
+                  />
                 </Pressable>
               </View>
               <View style={styles.reqCard}>
@@ -176,9 +179,11 @@ export default function ResetPasswordScreen({ navigation }: ResetPasswordScreenP
                   onSubmitEditing={handleReset}
                 />
                 <Pressable style={styles.eyeBtn} onPress={() => setShowConf(p => !p)} hitSlop={8}>
-                  <Text style={[styles.eyeIcon, !showConf && styles.eyeIconOff]}>
-                    {showConf ? '👁️' : '🙈'}
-                  </Text>
+                  <Ionicons
+                    name={showConf ? 'eye-outline' : 'eye-off-outline'}
+                    size={22}
+                    color={COLORS.inkMuted}
+                  />
                 </Pressable>
               </View>
               <Text style={[
