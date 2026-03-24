@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AuthHero from './components/AuthHero';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/COLORS';
 import { styles } from './styles/SignUpScreen.styles';
 
@@ -181,7 +182,11 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
                   onSubmitEditing={handleSignup}
                 />
                 <Pressable style={styles.eyeToggle} onPress={() => setShowPw(p => !p)} hitSlop={8}>
-                  <Text style={styles.eyeToggleText}>{showPw ? '🙈' : '👁️'}</Text>
+                  <Ionicons
+                    name={showPw ? 'eye-outline' : 'eye-off-outline'}
+                    size={22}
+                    color={COLORS.inkMuted}
+                  />
                 </Pressable>
               </View>
               {!!pwErr && <Text style={styles.fieldError}>{pwErr}</Text>}
