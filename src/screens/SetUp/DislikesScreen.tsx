@@ -39,9 +39,12 @@ const CATEGORIES: Category[] = [
 ];
 
 export default function DislikesScreen({ navigation }: DislikesScreenProps) {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected]   = useState<Set<string>>(new Set());
+  const [noDislikes, setNoDislikes] = useState(false);
 
   const toggleItem = (item: string) => {
+    // Tapping a tag turns off "No dislikes"
+    setNoDislikes(false);
     setSelected(prev => {
       const next = new Set(prev);
       next.has(item) ? next.delete(item) : next.add(item);
@@ -49,8 +52,21 @@ export default function DislikesScreen({ navigation }: DislikesScreenProps) {
     });
   };
 
+  const toggleNoDislikes = () => {
+    if (!noDislikes) {
+      // Selecting "No dislikes" clears all tag selections
+      setSelected(new Set());
+      setNoDislikes(true);
+    } else {
+      setNoDislikes(false);
+    }
+  };
+
   const countForCategory = (cat: Category) =>
     cat.items.filter(item => selected.has(item)).length;
+
+  // Continue is enabled when either "No dislikes" is chosen OR at least one tag is selected
+  const canContinue = noDislikes || selected.size > 0;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -67,7 +83,31 @@ export default function DislikesScreen({ navigation }: DislikesScreenProps) {
         <Text style={styles.subtitle}>Select any ingredients you'd like to avoid.</Text>
       </View>
 
-      <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
+      <ScrollView
+        style={styles.scrollBody}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 16 }}
+      >
+
+        {/* ── No Dislikes Banner ── */}
+        <TouchableOpacity
+          style={[styles.noDislikesBtn, noDislikes && styles.noDislikesBtnSelected]}
+          onPress={toggleNoDislikes}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.noDislikesEmoji}>👍</Text>
+          <View style={styles.noDislikesTextWrap}>
+            <Text style={[styles.noDislikesLabel, noDislikes && styles.noDislikesLabelSelected]}>
+              No dislikes
+            </Text>
+            <Text style={styles.noDislikesDesc}>I eat everything — skip this step</Text>
+          </View>
+          <View style={[styles.noDislikesCheck, noDislikes && styles.noDislikesCheckSelected]}>
+            {noDislikes && <Text style={styles.noDislikesCheckTick}>✓</Text>}
+          </View>
+        </TouchableOpacity>
+
+        {/* ── Category Cards ── */}
         {CATEGORIES.map(cat => {
           const count = countForCategory(cat);
           return (
@@ -99,12 +139,12 @@ export default function DislikesScreen({ navigation }: DislikesScreenProps) {
             </View>
           );
         })}
+
       </ScrollView>
 
-      {/* ── Disabled until at least one dislike is selected ── */}
       <ContinueButton
         onPress={() => navigation.navigate('Allergens')}
-        disabled={selected.size === 0}
+        disabled={!canContinue}
       />
 
     </SafeAreaView>

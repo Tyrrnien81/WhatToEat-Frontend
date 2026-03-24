@@ -5,15 +5,12 @@ export const styles = StyleSheet.create({
 
   safeArea: { flex: 1, backgroundColor: COLORS.beige },
 
-  // FIX: replaced screenBody (fixed View with overflow:hidden) with
-  // a ScrollView + scrollContent so the agreement note is never clipped
-  scrollArea: {
+  // Screen Body — flex layout, no overflow:hidden so agreementNote is never clipped
+  screenBody: {
     flex: 1,
     paddingHorizontal: 22,
-  },
-  scrollContent: {
     paddingTop: 12,
-    paddingBottom: 16,
+    paddingBottom: 8,
     gap: 12,
   },
 
@@ -67,7 +64,7 @@ export const styles = StyleSheet.create({
   agreementLink: { fontWeight: '700', color: COLORS.red },
 
   // Bottom Actions
-  bottomActions: { paddingHorizontal: 22, paddingBottom: 20, paddingTop: 10, gap: 8 },
+  bottomActions: { paddingHorizontal: 22, paddingBottom: 28, paddingTop: 10, gap: 8 },
   btnTextLink: { fontSize: 12, fontWeight: '700', color: COLORS.inkMuted, textAlign: 'center', paddingVertical: 4 },
 
   // Policy Detail Modal
