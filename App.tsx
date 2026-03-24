@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/AuthContext';
 import LoginScreen from './src/screens/Auth/LoginScreen';
-import SignupScreen from './src/screens/Auth/SignupScreen';
+import SignupScreen from './src/screens/Auth/SignUpScreen';
 import ForgotPasswordScreen from './src/screens/Auth/ForgotPasswordScreen';
 import VerifyEmailScreen from './src/screens/Auth/VerifyEmailScreen';
 import ResetPasswordScreen from './src/screens/Auth/ResetPasswordScreen';

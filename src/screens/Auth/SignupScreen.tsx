@@ -220,7 +220,10 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
           {/* ── Sign In Row ── */}
           <View style={styles.signinRow}>
             <Text style={styles.signinText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()} 
+              activeOpacity={0.7}
+            >
               <Text style={styles.signinLink}>Sign in →</Text>
             </TouchableOpacity>
           </View>
