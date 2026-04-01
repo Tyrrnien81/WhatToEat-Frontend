@@ -27,12 +27,12 @@ type DiningHallScreenProps = {
 const MAX_SELECTIONS = 3;
 
 const HALLS = [
-  { id: 'gordon', name: 'Gordon Avenue Market', logo: require('../../../assets/Reference_Images/DiningHall_GordonAvenueMarket.png') },
-  { id: 'fourlakes', name: 'Four Lakes Market', logo: require('../../../assets/Reference_Images/DiningHall_FourLakesMarket.png') },
-  { id: 'liz', name: "Liz's Market", logo: require("../../../assets/Reference_Images/DiningHall_Liz'sMarket.png") },
-  { id: 'rheta', name: "Rheta's Market", logo: require("../../../assets/Reference_Images/DiningHall_Rheta'sMarket.png") },
-  { id: 'carson', name: "Carson's Market", logo: require("../../../assets/Reference_Images/DiningHall_Carson'sMarket.png") },
-  { id: 'lowell', name: 'Lowell Market', logo: require('../../../assets/Reference_Images/DiningHall_LowellMarket.png') },
+  { id: 'gordon',   name: 'Gordon Avenue Market', logo: require('../../../assets/Reference_Images/DiningHall_GordonAvenueMarket.png') },
+  { id: 'fourlakes',name: 'Four Lakes Market',    logo: require('../../../assets/Reference_Images/DiningHall_FourLakesMarket.png') },
+  { id: 'liz',      name: "Liz's Market",         logo: require("../../../assets/Reference_Images/DiningHall_Liz'sMarket.png") },
+  { id: 'rheta',    name: "Rheta's Market",        logo: require("../../../assets/Reference_Images/DiningHall_Rheta'sMarket.png") },
+  { id: 'carson',   name: "Carson's Market",       logo: require("../../../assets/Reference_Images/DiningHall_Carson'sMarket.png") },
+  { id: 'lowell',   name: 'Lowell Market',         logo: require('../../../assets/Reference_Images/DiningHall_LowellMarket.png') },
 ];
 
 export default function DiningHallScreen({ navigation }: DiningHallScreenProps) {
@@ -73,7 +73,11 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
         <Text style={styles.subtitle}>Choose up to 3 dining halls in order.</Text>
       </View>
 
-      <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false} contentContainerStyle={styles.gridContainer}>
+      <ScrollView
+        style={styles.scrollBody}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.gridContainer}
+      >
         {Array.from({ length: Math.ceil(HALLS.length / 2) }, (_, rowIdx) => (
           <View key={rowIdx} style={styles.gridRow}>
             {HALLS.slice(rowIdx * 2, rowIdx * 2 + 2).map(hall => {
@@ -83,7 +87,11 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
               return (
                 <TouchableOpacity
                   key={hall.id}
-                  style={[styles.hallCard, isSel && styles.hallCardSelected, isDisabled && styles.hallCardMaxed]}
+                  style={[
+                    styles.hallCard,
+                    isSel && styles.hallCardSelected,
+                    isDisabled && styles.hallCardMaxed,
+                  ]}
                   onPress={() => toggle(hall.id)}
                   activeOpacity={isDisabled ? 1 : 0.85}
                   disabled={isDisabled}
@@ -91,6 +99,7 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
                   <View style={[styles.badge, isSel && styles.badgeSelected]}>
                     {isSel && <Text style={styles.badgeText}>{num}</Text>}
                   </View>
+                  {/* ── Logo — larger size ── */}
                   <Image source={hall.logo} style={styles.hallLogo} resizeMode="contain" />
                   <Text style={styles.hallName}>{hall.name}</Text>
                 </TouchableOpacity>
@@ -100,7 +109,6 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
         ))}
       </ScrollView>
 
-      {/* ── Continue Button ── */}
       <ContinueButton onPress={() => navigation.navigate('PrivacyPolicy')} />
 
     </SafeAreaView>
