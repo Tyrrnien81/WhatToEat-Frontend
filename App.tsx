@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/AuthContext';
 import LoginScreen from './src/screens/Auth/LoginScreen';
-import SignupScreen from './src/screens/Auth/SignUpScreen';
+import SignupScreen from './src/screens/Auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/Auth/ForgotPasswordScreen';
 import VerifyEmailScreen from './src/screens/Auth/VerifyEmailScreen';
 import ResetPasswordScreen from './src/screens/Auth/ResetPasswordScreen';
@@ -24,6 +24,7 @@ import HomeScreenMeal from './src/screens/HomeScreen/HomeScreenMeal';
 import HomeScreenConfirm from './src/screens/HomeScreen/HomeScreenConfirm';
 import HomeScreenAdd from './src/screens/HomeScreen/HomeScreenAdd';
 import ScanScreen from './src/screens/Scan/ScanScreen';
+import SignupVerifyScreen from './src/screens/Auth/SignupVerifyScreen';
 
 export type RootStackParamList = {
   ForgotPassword: undefined;
@@ -47,6 +48,7 @@ export type RootStackParamList = {
   Confirm: undefined;
   Add: undefined;
   Scan: undefined;
+  SignupVerify: { email: string };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -81,6 +83,7 @@ export default function App() {
             <Stack.Screen name="Confirm"        component={HomeScreenConfirm} />
             <Stack.Screen name="Add"            component={HomeScreenAdd} />
             <Stack.Screen name="Scan"           component={ScanScreen} />
+            <Stack.Screen name="SignupVerify"   component={SignupVerifyScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </AuthProvider>
