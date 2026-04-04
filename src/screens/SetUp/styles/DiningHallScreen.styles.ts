@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
   gridRow: { flexDirection: 'row', gap: 12 },
 
   hallCard: {
-    flex: 1, height: 145,
+    flex: 1, height: 175,        
     backgroundColor: COLORS.bg2,
     borderWidth: 2.5, borderColor: COLORS.border,
     borderRadius: 20, padding: 14,
@@ -47,7 +47,7 @@ export const styles = StyleSheet.create({
   badgeSelected: { backgroundColor: COLORS.red, borderColor: COLORS.border },
   badgeText: { fontSize: 11, fontWeight: '900', color: 'white' },
 
-  hallLogo: { width: 72, height: 72 },
+  hallLogo: { width: 110, height: 110 },  
   hallName: {
     fontSize: 12, fontWeight: '800', color: COLORS.ink,
     textAlign: 'center', lineHeight: 16, letterSpacing: -0.3,

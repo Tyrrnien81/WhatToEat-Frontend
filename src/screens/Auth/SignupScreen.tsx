@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useFocusEffect } from '@react-navigation/native';
 import AuthHero from './components/AuthHero';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/COLORS';
@@ -24,6 +25,7 @@ type RootStackParamList = {
   Onboarding: undefined;
   Home: undefined;
   Welcome: undefined;
+  SignupVerify: { email: string };  // ← fix: was undefined
 };
 
 type SignupScreenProps = {
@@ -44,6 +46,14 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
 
   const emailRef    = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
+
+  // ── Reset success state when returning to this screen ──────────────────────
+  useFocusEffect(
+    useCallback(() => {
+      setSuccess(false);
+      setLoading(false);
+    }, [])
+  );
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
@@ -93,9 +103,11 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
 
     setLoading(true);
     try {
+      // TODO: replace with real API call
+      // await createAccount({ name, email, password });
       await new Promise(resolve => setTimeout(resolve, 1600));
       setSuccess(true);
-      setTimeout(() => navigation.replace('Welcome'), 600);
+      setTimeout(() => navigation.navigate('SignupVerify', { email }), 600); // ← navigate keeps Signup in stack so goBack() works
     } catch (err) {
       setEmailErr('An account with this email already exists');
     } finally {
@@ -226,7 +238,7 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
           <View style={styles.signinRow}>
             <Text style={styles.signinText}>Already have an account? </Text>
             <TouchableOpacity
-              onPress={() => navigation.goBack()} 
+              onPress={() => navigation.goBack()}
               activeOpacity={0.7}
             >
               <Text style={styles.signinLink}>Sign in →</Text>

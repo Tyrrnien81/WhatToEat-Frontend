@@ -16,7 +16,7 @@ type RootStackParamList = {
   Home: undefined;
   ForgotPassword: undefined;
   ResetPassword: undefined;
-  VerifyEmail: undefined;
+  VerifyEmail: { email: string };
   Birthday: undefined;
   Welcome: undefined;
 };
@@ -66,15 +66,6 @@ export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
           activeOpacity={0.85}
         >
           <Text style={styles.getStartedBtnText}>Get Started →</Text>
-        </TouchableOpacity>
-
-        {/* Login */}
-        <TouchableOpacity
-          style={styles.loginBtn}
-          onPress={() => navigation.navigate('Login')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.loginBtnText}>I already have an account</Text>
         </TouchableOpacity>
 
         {/* Terms */}
