@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from './theme';
 import { SortOption, DiningHall } from './types';
 import { useQuery } from '@tanstack/react-query';
-import { fetchDiningHalls } from '../../api/diningHalls';
+import { fetchDiningHalls } from '../../services/diningHalls';
 import { DiningHallCard } from './components/DiningHallCard';
 import { SortDropdown } from './components/SortDropdown';
 import { DateTabBar, DateTab } from './components/DateTabBar';
