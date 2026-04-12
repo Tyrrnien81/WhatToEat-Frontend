@@ -7,14 +7,15 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Svg, { Path } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../App';
-import SwipeableFoodItem from './components/SwipeableFoodItem';
-import { INITIAL_ITEMS, FoodVariant } from './components/foodData';
+import { getRecommendedCombos } from '../../services/homescreenService';
+import { Combo } from '../../types/homescreen';
 
 const COLORS = {
   red: '#FF3347',
@@ -26,31 +27,24 @@ const COLORS = {
 
 export default function HomeScreenMeal() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const [altIndices, setAltIndices] = React.useState<number[]>(INITIAL_ITEMS.map(() => 0));
-  const [anyExpanded, setAnyExpanded] = React.useState(false);
+  const [combos, setCombos] = React.useState<Combo[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const handleSwap = (itemIndex: number, selectedAltIndex: number) => {
-    setAltIndices(prev => {
-      const next = [...prev];
-      next[itemIndex] = selectedAltIndex;
-      return next;
-    });
-  };
+  React.useEffect(() => {
+    getRecommendedCombos('breakfast')
+      .then(data => {
+        if (data?.combos) setCombos(data.combos);
+      })
+      .catch(err => console.error('Failed to fetch combos:', err))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const getCurrentItem = (i: number): FoodVariant => {
-    const alt = altIndices[i];
-    return alt === 0 ? INITIAL_ITEMS[i] : INITIAL_ITEMS[i].alternatives[alt - 1];
-  };
+  const combo = combos[0];
 
-  const totalKcal = INITIAL_ITEMS.reduce((sum, _, i) => sum + getCurrentItem(i).kcal, 0);
-
-  const totalMacros = INITIAL_ITEMS.reduce(
-    (acc, _, i) => {
-      getCurrentItem(i).macros.forEach(m => { acc[m.type] += parseInt(m.value, 10); });
-      return acc;
-    },
-    { p: 0, c: 0, f: 0 } as Record<'p' | 'c' | 'f', number>
-  );
+  const totalKcal = combo?.totalCalories ?? 0;
+  const totalProtein = combo?.totalProtein ?? 0;
+  const totalCarbs = combo?.totalCarbs ?? 0;
+  const totalFat = combo?.totalFat ?? 0;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -66,9 +60,9 @@ export default function HomeScreenMeal() {
             </View>
             <View style={styles.totalMacros}>
               {[
-                { val: `${totalMacros.p}g`, label: 'Protein', color: '#FF9FBF' },
-                { val: `${totalMacros.c}g`, label: 'Carbs',   color: '#FFD080' },
-                { val: `${totalMacros.f}g`, label: 'Fats',    color: '#80E8E0' },
+                { val: `${totalProtein}g`, label: 'Protein', color: '#FF9FBF' },
+                { val: `${totalCarbs}g`,   label: 'Carbs',   color: '#FFD080' },
+                { val: `${totalFat}g`,     label: 'Fats',    color: '#80E8E0' },
               ].map((m, i) => (
                 <React.Fragment key={i}>
                   {i > 0 && <View style={styles.totalSep} />}
@@ -86,35 +80,32 @@ export default function HomeScreenMeal() {
             style={styles.scrollBody}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 16 }}
-            scrollEnabled={!anyExpanded}
           >
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>What's on the plate</Text>
-              <Text style={styles.sectionHint}>← swipe to swap</Text>
+              <Text style={styles.sectionHint}>{combo?.diningHall ?? ''}</Text>
             </View>
 
-            {/* Overlay lives here as a sibling to swipeRow items so zIndex works */}
-            <View style={styles.foodList}>
-              {INITIAL_ITEMS.map((item, i) => (
-                <SwipeableFoodItem
-                  key={i}
-                  item={item}
-                  altIndex={altIndices[i]}
-                  onSwap={(selectedAltIndex) => handleSwap(i, selectedAltIndex)}
-                  onExpandChange={(open) => setAnyExpanded(open)}
-                />
-              ))}
-              {anyExpanded && (
-                <View style={styles.overlay} pointerEvents="none" />
-              )}
-            </View>
+            {loading ? (
+              <ActivityIndicator size="large" color={COLORS.red} style={{ marginTop: 40 }} />
+            ) : (
+              <View style={styles.foodList}>
+                {(combo?.items ?? []).map((item, i) => (
+                  <View key={i} style={styles.foodRow}>
+                    <Text style={styles.foodName}>{item.name}</Text>
+                    <Text style={styles.foodKcal}>{item.calories ?? 0} kcal</Text>
+                  </View>
+                ))}
+              </View>
+            )}
 
             {/* ── Log button ── */}
             <View style={styles.logBtnWrap}>
               <TouchableOpacity
                 style={styles.logBtn}
-                onPress={() => navigation.navigate('Confirm')}
+                onPress={() => navigation.navigate('Confirm', { combo } as any)}
                 activeOpacity={0.85}
+                disabled={!combo}
               >
                 <Svg width={20} height={20} viewBox="0 0 24 24">
                   <Path d="M12 5v14M5 12h14" stroke="white" strokeWidth={2.5} strokeLinecap="round" fill="none" />
@@ -133,7 +124,6 @@ export default function HomeScreenMeal() {
 const styles = StyleSheet.create({
   safeArea:  { flex: 1, backgroundColor: COLORS.beige },
   container: { flex: 1, backgroundColor: COLORS.beige },
-
   totalRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginHorizontal: 20, marginTop: 10,
@@ -148,26 +138,19 @@ const styles = StyleSheet.create({
   totalMacro: { alignItems: 'center' },
   totalMacroVal: { fontSize: 14, fontWeight: '800', lineHeight: 16 },
   totalMacroLabel: { fontSize: 9, fontWeight: '700', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 2 },
-
   scrollBody: { flex: 1 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 22, paddingTop: 10, paddingBottom: 8 },
   sectionTitle: { fontSize: 13, fontWeight: '900', color: COLORS.ink, textTransform: 'uppercase', letterSpacing: 0.6 },
   sectionHint: { fontSize: 10, fontWeight: '600', color: COLORS.inkMuted },
-
-  foodList: {
-    paddingHorizontal: 20,
-    gap: 7,
-    position: 'relative',
+  foodList: { paddingHorizontal: 20, gap: 7 },
+  foodRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: 'white', borderWidth: 2, borderColor: COLORS.border,
+    borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12,
   },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(26, 10, 10, 0.5)',
-    zIndex: 10,
-    borderRadius: 16,
-  },
-
-  logBtnWrap: { paddingHorizontal: 20, paddingTop: 8 },
+  foodName: { fontSize: 14, fontWeight: '700', color: COLORS.ink, flex: 1 },
+  foodKcal: { fontSize: 13, fontWeight: '800', color: COLORS.red },
+  logBtnWrap: { paddingHorizontal: 20, paddingTop: 16 },
   logBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
     backgroundColor: COLORS.red, borderWidth: 3, borderColor: COLORS.border,
