@@ -1,77 +1,43 @@
 import { StyleSheet } from 'react-native';
 import { C } from '../theme';
 
-const PILL_WIDTH = 64;
-const HEIGHT = 56;
-const RADIUS = 14;
+const PILL_WIDTH = 48;
+const HEIGHT = 48;
 
 export const styles = StyleSheet.create({
     wrapper: {
-        marginTop: 16,
         paddingHorizontal: 20,
-    },
-    container: {
-        height: HEIGHT,
-        borderRadius: RADIUS,
-        borderWidth: 2.5,
-        borderColor: C.border,
-        overflow: 'hidden',
-        backgroundColor: C.bg,
-    },
-    selectedBg: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        width: PILL_WIDTH,
-        backgroundColor: C.red,
-        zIndex: 0,
+        paddingTop: 12,
     },
     row: {
         flexDirection: 'row',
-    },
-    pill: {
-        width: PILL_WIDTH,
-        height: HEIGHT,
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1,
-        backgroundColor: 'transparent',
+        gap: 4,
     },
-    pillDivider: {
-        borderLeftWidth: 1.5,
-        borderLeftColor: 'rgba(42,26,26,0.15)',
+    pill: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: PILL_WIDTH,
+        height: HEIGHT,
+        borderRadius: 14,
+        borderWidth: 2,
+        borderColor: C.border,
     },
-    fillerPill: {
-        opacity: 0.3,
-    },
-    fillerIcon: {
-        fontSize: 11,
-    },
-    fillerText: {
-        fontSize: 8,
-        fontWeight: '700',
-        color: C.inkMuted,
-        textAlign: 'center',
-        lineHeight: 10,
-    },
+    pillDefault: { backgroundColor: C.bg },
+    pillActive:  { backgroundColor: C.red },
+    pillPast:    { backgroundColor: '#3A2A2A' },
+    pillFuture:  { backgroundColor: '#E0D8D0' },
     day: {
         fontSize: 8,
         fontWeight: '700',
-        letterSpacing: 0.5,
-        color: C.inkMuted,
         textTransform: 'uppercase',
-    },
-    daySelected: {
-        color: 'rgba(255,255,255,0.8)',
+        letterSpacing: 0.3,
     },
     num: {
-        fontSize: 18,
+        fontSize: 13,
         fontWeight: '900',
-        color: C.ink,
-        lineHeight: 22,
-    },
-    numSelected: {
-        color: 'white',
+        lineHeight: 16,
     },
 });
