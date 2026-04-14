@@ -13,6 +13,13 @@ import ProgressBar from './components/ProgressBar';
 import ContinueButton from './components/ContinueButton';
 import BackButton from './components/BackButton';
 import { styles, ITEM_H } from './styles/HeightScreen.styles';
+import { useOnboardingDraft } from '../../stores/onboardingDraftStore';
+
+function ftLabelToInches(label: string): number {
+  const m = label.match(/^(\d+)'\s*(\d+)/);
+  if (!m) return 70;
+  return parseInt(m[1], 10) * 12 + parseInt(m[2], 10);
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -109,6 +116,7 @@ function PickerCol({ items, selectedIdx, onSelect }: PickerColProps) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function HeightScreen({ navigation }: HeightScreenProps) {
+  const setDraft = useOnboardingDraft((s) => s.setDraft);
   const [unit, setUnit]           = useState<'cm' | 'ft'>('cm');
   const [selIdx, setSelIdx]       = useState(50);
   const [colHeight, setColHeight] = useState(0);
@@ -179,7 +187,18 @@ export default function HeightScreen({ navigation }: HeightScreenProps) {
       </View>
 
       {/* ── Continue Button ── */}
-      <ContinueButton onPress={() => navigation.navigate('Weight')} />
+      <ContinueButton
+        onPress={() => {
+          const values = unit === 'cm' ? CM_VALUES : FT_VALUES;
+          const raw = values[selIdx] ?? '170';
+          if (unit === 'cm') {
+            setDraft({ heightUnit: 'cm', heightValue: parseInt(raw, 10) });
+          } else {
+            setDraft({ heightUnit: 'ft', heightValue: ftLabelToInches(raw) });
+          }
+          navigation.navigate('Weight');
+        }}
+      />
 
     </SafeAreaView>
   );

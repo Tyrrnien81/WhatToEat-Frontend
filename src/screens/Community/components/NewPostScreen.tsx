@@ -21,7 +21,7 @@ const TAG_EMOJI: Record<DiningHallTag, string> = {
 
 interface Props {
   onClose: () => void;
-  onSubmit: (content: string, tag: DiningHallTag) => void;
+  onSubmit: (content: string, tag: DiningHallTag) => void | Promise<void>;
 }
 
 export const NewPostScreen = ({ onClose, onSubmit }: Props) => {

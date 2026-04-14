@@ -14,6 +14,7 @@ import ContinueButton from './components/ContinueButton';
 import BackButton from './components/BackButton';
 import { COLORS } from '../../constants/COLORS';
 import { styles, TICK_W } from './styles/GoalWeightScreen.styles';
+import { useOnboardingDraft } from '../../stores/onboardingDraftStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -61,6 +62,7 @@ function getLabelText(unit: 'kg' | 'lb', idx: number): string {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function GoalWeightScreen({ navigation }: GoalWeightScreenProps) {
+  const setDraft = useOnboardingDraft((s) => s.setDraft);
   const [unit, setUnitState] = useState<'kg' | 'lb'>('kg');
   const [kgValue, setKgValue] = useState(77.0);
   const [lbValue, setLbValue] = useState(170);
@@ -177,7 +179,12 @@ export default function GoalWeightScreen({ navigation }: GoalWeightScreenProps) 
       <View style={{ flex: 1 }} />
 
       {/* ── Continue Button ── */}
-      <ContinueButton onPress={() => navigation.navigate('Diet')} />
+      <ContinueButton
+        onPress={() => {
+          setDraft({ goalWeight: currentValue });
+          navigation.navigate('Diet');
+        }}
+      />
 
     </SafeAreaView>
   );

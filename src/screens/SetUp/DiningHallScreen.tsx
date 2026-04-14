@@ -12,6 +12,7 @@ import ProgressBar from './components/ProgressBar';
 import ContinueButton from './components/ContinueButton';
 import BackButton from './components/BackButton';
 import { styles } from './styles/DiningHallScreen.styles';
+import { useOnboardingDraft } from '../../stores/onboardingDraftStore';
 
 type RootStackParamList = {
   Login: undefined; Signup: undefined; Onboarding: undefined; Home: undefined;
@@ -36,6 +37,7 @@ const HALLS = [
 ];
 
 export default function DiningHallScreen({ navigation }: DiningHallScreenProps) {
+  const setDraft = useOnboardingDraft((s) => s.setDraft);
   const [order, setOrder] = useState<string[]>([]);
 
   const toggle = (id: string) => {
@@ -109,7 +111,12 @@ export default function DiningHallScreen({ navigation }: DiningHallScreenProps) 
         ))}
       </ScrollView>
 
-      <ContinueButton onPress={() => navigation.navigate('PrivacyPolicy')} />
+      <ContinueButton
+        onPress={() => {
+          setDraft({ favoriteDiningHalls: order });
+          navigation.navigate('PrivacyPolicy');
+        }}
+      />
 
     </SafeAreaView>
   );

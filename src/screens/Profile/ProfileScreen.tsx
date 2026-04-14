@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,17 @@ import {
   SafeAreaView,
   StatusBar,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../App';
+import { fetchFoodLogSummary, fetchProfileMe, type ProfileMeResponse } from '../../services/profileService';
+import {
+  fetchPreferences,
+  type PreferencesResponse,
+} from '../../services/questionnaireService';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const COLORS = {
@@ -38,6 +44,48 @@ const IconChevron = () => (
     <Path d="M3.5 2l3 3-3 3" stroke={COLORS.inkMuted} strokeWidth={1.8} strokeLinecap="round" fill="none" />
   </Svg>
 );
+
+const HALL_NAMES: Record<string, string> = {
+  gordon: 'Gordon Avenue Market',
+  fourlakes: 'Four Lakes Market',
+  liz: "Liz's Market",
+  rheta: "Rheta's Market",
+  carson: "Carson's Market",
+  lowell: 'Lowell Market',
+};
+
+const ALLERGEN_LABELS: Record<string, string> = {
+  soy: 'Soy',
+  peanuts: 'Peanuts',
+  treenuts: 'Tree nuts',
+  halal: 'Halal',
+  kosher: 'Kosher',
+  dairy: 'Dairy',
+  gluten: 'Gluten',
+  shellfish: 'Shellfish',
+  fish: 'Fish',
+  egg: 'Egg',
+  other: 'Other',
+};
+
+function dietLabel(dt: string | null | undefined): string {
+  if (!dt) return '—';
+  const m: Record<string, string> = {
+    balanced: 'Balanced',
+    high_protein: 'High Protein',
+    highprotein: 'High Protein',
+    vegan: 'Vegan',
+    vegetarian: 'Vegetarian',
+  };
+  return m[dt] ?? dt;
+}
+
+function formatBirthday(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T12:00:00');
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 const IconLogout = () => (
   <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
@@ -101,6 +149,85 @@ export default function ProfileScreen() {
   const [notifications, setNotifications] = useState(true);
   const [weeklyReport, setWeeklyReport] = useState(false);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [me, setMe] = useState<ProfileMeResponse | null>(null);
+  const [prefs, setPrefs] = useState<PreferencesResponse | null>(null);
+  const [streak, setStreak] = useState<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const profile = await fetchProfileMe();
+          if (!cancelled) setMe(profile);
+          try {
+            const p = await fetchPreferences();
+            if (!cancelled) setPrefs(p);
+          } catch {
+            if (!cancelled) setPrefs(null);
+          }
+          try {
+            const sum = await fetchFoodLogSummary('week');
+            if (!cancelled) setStreak(sum.currentStreak ?? 0);
+          } catch {
+            if (!cancelled) setStreak(0);
+          }
+        } catch (e: unknown) {
+          if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+        } finally {
+          if (!cancelled) setLoading(false);
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
+
+  const displayName = me?.name ?? '—';
+  const handle = me?.email ? `@${me.email.split('@')[0]}` : '@—';
+  const kcalGoal = prefs?.target_calories ?? '—';
+  const proteinGoal = prefs?.target_protein_g != null ? `${Math.round(prefs.target_protein_g)}g` : '—';
+  const weightStr =
+    prefs?.weight != null
+      ? `${prefs.weight.toFixed(1)} kg`
+      : me?.weight != null
+        ? `${me.weight.toFixed(1)} kg`
+        : '—';
+  const goalStr =
+    prefs?.goal_weight != null
+      ? `${prefs.goal_weight.toFixed(1)} kg`
+      : me?.goalWeight != null
+        ? `${me.goalWeight.toFixed(1)} kg`
+        : '—';
+  const dt = prefs?.diet_type ?? me?.dietType;
+  const dietPills: { label: string; color: string }[] = dt
+    ? [{ label: dietLabel(dt), color: '#FFE0EE' }]
+    : [];
+  const allergenIds = prefs?.allergens?.filter((a) => a && a !== 'none') ?? [];
+  const allergenPills = allergenIds.map((id) => ({
+    label: ALLERGEN_LABELS[id] ?? id,
+    color: COLORS.redLight,
+  }));
+
+  const homeHallId = prefs?.favorite_dining_halls?.[0];
+  const homeHallName = homeHallId ? HALL_NAMES[homeHallId] ?? homeHallId : '—';
+  const heightStr =
+    prefs?.height != null
+      ? `${Math.round(prefs.height)} cm`
+      : me?.height != null
+        ? `${Math.round(me.height)} cm`
+        : '—';
+  const genderStr =
+    prefs?.gender != null
+      ? prefs.gender.charAt(0).toUpperCase() + prefs.gender.slice(1)
+      : me?.gender != null
+        ? me.gender.charAt(0).toUpperCase() + me.gender.slice(1)
+        : '—';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -119,6 +246,19 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        {loading ? (
+          <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={COLORS.red} />
+          </View>
+        ) : error ? (
+          <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
+            <Text style={{ color: COLORS.red, fontWeight: '700' }}>{error}</Text>
+            <Text style={{ marginTop: 8, color: COLORS.inkMuted, fontSize: 12 }}>
+              Check API base URL and that the backend allows your user (JWT or dev user_id).
+            </Text>
+          </View>
+        ) : null}
+
         {/* ── Avatar + Name ── */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarWrap}>
@@ -129,54 +269,67 @@ export default function ProfileScreen() {
               <Text style={styles.avatarBadgeText}>🔥</Text>
             </View>
           </View>
-          <Text style={styles.userName}>Seunghoon Park</Text>
-          <Text style={styles.userHandle}>@seunghoon · UW–Madison</Text>
+          <Text style={styles.userName}>{displayName}</Text>
+          <Text style={styles.userHandle}>{handle} · UW–Madison</Text>
           <View style={styles.streakPill}>
-            <Text style={styles.streakText}>12-day streak 🔥</Text>
+            <Text style={styles.streakText}>{streak}-day streak 🔥</Text>
           </View>
         </View>
 
         {/* ── Stats Row ── */}
         <View style={styles.statsRow}>
-          <StatCard value="2,800" label="kcal goal" bg="#FFE8EA" accent={COLORS.red} />
-          <StatCard value="180g" label="protein" bg="#FFE0EE" accent="#FF6B9D" />
-          <StatCard value="72kg" label="current" bg="#D8F5F3" accent="#2EC4B6" />
-          <StatCard value="68kg" label="goal" bg="#FFF2DC" accent="#FF9F1C" />
+          <StatCard
+            value={typeof kcalGoal === 'number' ? String(Math.round(kcalGoal)) : String(kcalGoal)}
+            label="kcal goal"
+            bg="#FFE8EA"
+            accent={COLORS.red}
+          />
+          <StatCard value={proteinGoal} label="protein" bg="#FFE0EE" accent="#FF6B9D" />
+          <StatCard value={weightStr} label="current" bg="#D8F5F3" accent="#2EC4B6" />
+          <StatCard value={goalStr} label="goal" bg="#FFF2DC" accent="#FF9F1C" />
         </View>
 
         {/* ── Diet & Allergens ── */}
         <SectionBlock title="Diet & Restrictions">
           <View style={styles.tagsRow}>
-            <TagPill label="High Protein" color="#FFE0EE" />
-            <TagPill label="No Gluten" color="#FFF2DC" />
-            <TagPill label="Lactose Free" color="#D8F5F3" />
+            {dietPills.length === 0 ? (
+              <Text style={{ fontSize: 13, color: COLORS.inkMuted, paddingVertical: 8 }}>No diet type on file</Text>
+            ) : (
+              dietPills.map((p) => <TagPill key={p.label} label={p.label} color={p.color} />)
+            )}
           </View>
           <View style={[styles.divider, { marginVertical: 10 }]} />
           <Text style={styles.allergenLabel}>Allergens</Text>
           <View style={styles.tagsRow}>
-            <TagPill label="🥜 Peanuts" color={COLORS.redLight} />
-            <TagPill label="🦐 Shellfish" color={COLORS.redLight} />
+            {allergenPills.length === 0 ? (
+              <Text style={{ fontSize: 12, color: COLORS.inkMuted }}>None listed</Text>
+            ) : (
+              allergenPills.map((p) => <TagPill key={p.label} label={p.label} color={p.color} />)
+            )}
           </View>
         </SectionBlock>
 
         {/* ── Body Info ── */}
         <SectionBlock title="Body Info">
-          <SectionRow label="Height" value="178 cm" />
+          <SectionRow label="Height" value={heightStr} />
           <View style={styles.divider} />
-          <SectionRow label="Weight" value="72 kg" />
+          <SectionRow label="Weight" value={weightStr} />
           <View style={styles.divider} />
-          <SectionRow label="Goal Weight" value="68 kg" />
+          <SectionRow label="Goal Weight" value={goalStr} />
           <View style={styles.divider} />
-          <SectionRow label="Birthday" value="Sep 15, 2001" />
+          <SectionRow label="Birthday" value={formatBirthday(prefs?.birthday ?? me?.birthday)} />
           <View style={styles.divider} />
-          <SectionRow label="Gender" value="Male" />
+          <SectionRow label="Gender" value={genderStr} />
         </SectionBlock>
 
         {/* ── Dining Preferences ── */}
         <SectionBlock title="Dining Preferences">
-          <SectionRow label="Home Dining Hall" value="Gordon Dining" />
+          <SectionRow label="Home Dining Hall" value={homeHallName} />
           <View style={styles.divider} />
-          <SectionRow label="Dislikes" value="3 items" />
+          <SectionRow
+            label="Dislikes"
+            value={prefs?.dislikes?.length ? `${prefs.dislikes.length} items` : '—'}
+          />
         </SectionBlock>
 
         {/* ── Notifications ── */}

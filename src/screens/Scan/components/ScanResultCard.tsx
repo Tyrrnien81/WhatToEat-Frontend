@@ -8,12 +8,23 @@ type Props = {
   carbs: number;
   fat: number;
   onDismiss: () => void;
+  /** When set, shows a second control to POST /scan/log */
+  onLogMeal?: () => void;
+  logBusy?: boolean;
 };
 
 // Shows the nutrition result card after a successful scan
-export default function ScanResultCard({ kcal, protein, carbs, fat, onDismiss }: Props) {
+export default function ScanResultCard({
+  kcal,
+  protein,
+  carbs,
+  fat,
+  onDismiss,
+  onLogMeal,
+  logBusy,
+}: Props) {
   return (
-    <TouchableOpacity style={styles.resultCard} onPress={onDismiss} activeOpacity={0.95}>
+    <View style={styles.resultCard}>
       <Text style={styles.resultKcal}>{kcal} kcal</Text>
       <View style={styles.macroRow}>
         <View style={styles.macroItem}>
@@ -30,6 +41,19 @@ export default function ScanResultCard({ kcal, protein, carbs, fat, onDismiss }:
         </View>
       </View>
       <Text style={styles.resultNote}>Nutrition information is an estimate</Text>
-    </TouchableOpacity>
+      {onLogMeal ? (
+        <TouchableOpacity
+          style={{ marginTop: 12, paddingVertical: 10, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 12 }}
+          onPress={onLogMeal}
+          disabled={logBusy}
+          activeOpacity={0.85}
+        >
+          <Text style={{ color: 'white', fontWeight: '800' }}>{logBusy ? 'Saving…' : 'Save to food log'}</Text>
+        </TouchableOpacity>
+      ) : null}
+      <TouchableOpacity style={{ marginTop: 8, paddingVertical: 8 }} onPress={onDismiss} activeOpacity={0.85}>
+        <Text style={{ color: 'white', textAlign: 'center', opacity: 0.85 }}>Dismiss</Text>
+      </TouchableOpacity>
+    </View>
   );
 }

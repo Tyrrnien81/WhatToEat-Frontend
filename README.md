@@ -26,21 +26,32 @@ src/
 │   ├── Scan/            # Food scanning
 │   └── SetUp/           # Onboarding setup
 ├── services/
-│   ├── api.ts           # Base URL + shared config (single source of truth)
-│   ├── diningHalls.ts   # Dining hall API calls
-│   └── homescreenService.ts  # Home screen API calls
-├── store/               # Zustand global state
+│   ├── api.ts                 # Base URL, dev user id, optional JWT, auth query helper
+│   ├── communityService.ts  # Community feed + create post
+│   ├── diningHalls.ts         # Dining hall API calls
+│   ├── homescreenService.ts # Home screen API calls
+│   ├── profileService.ts    # GET /users/me, food-log summary
+│   ├── questionnaireService.ts  # POST /questionnaire, GET preferences
+│   └── scanService.ts       # POST /scan, POST /scan/log
+├── stores/
+│   └── onboardingDraftStore.ts  # SetUp → POST /questionnaire payload
+├── store/               # Zustand global state (legacy / other)
 └── types/               # Shared TypeScript types
 ```
 
 ## Configuration
 
-All API config lives in **`src/services/api.ts`**. Update your IP here when your local network changes:
+Primary config is **`src/services/api.ts`** (defaults + env overrides).
 
-```ts
-export const BASE_URL = 'http://<YOUR_IP>:8000';
-export const DEFAULT_USER_ID = '<YOUR_USER_ID>';
-```
+| Variable | Purpose |
+|----------|---------|
+| `EXPO_PUBLIC_API_BASE_URL` | Backend origin, e.g. `http://192.168.1.10:8000` |
+| `EXPO_PUBLIC_DEV_USER_ID` | UUID for `?user_id=` when not using a JWT |
+| `EXPO_PUBLIC_API_ACCESS_TOKEN` | Supabase **access** JWT (`Authorization: Bearer …`). When set, `user_id` query is omitted. |
+
+**Local backend with `ALLOW_QUERY_USER_ID=true`:** leave `EXPO_PUBLIC_API_ACCESS_TOKEN` unset; the app sends `?user_id=EXPO_PUBLIC_DEV_USER_ID` (or the default in `api.ts`) on protected routes.
+
+**Production / staging:** set `EXPO_PUBLIC_API_ACCESS_TOKEN` from your auth layer after sign-in (wire `AuthContext` when ready); never enable `ALLOW_QUERY_USER_ID` on the server.
 
 ## Getting Started
 
@@ -59,10 +70,18 @@ npm install
 ### Start the app
 
 ```bash
-npx expo start --clear
+npm start
 ```
 
-Scan the QR code with Expo Go on your phone.
+`npm start` runs `env -u CI expo start` so Expo’s terminal UI (including the **ASCII QR**) is not disabled when `CI` is set in your shell (Cursor tasks, some CI-like environments).
+
+The QR only appears when the process has a real TTY (`stdout.isTTY`). If you still see only “Waiting on http://localhost:8081”:
+
+1. Run **`npm start`** in **Terminal.app**, **iTerm**, or the VS Code / Cursor **integrated terminal** (not a piped or headless task).
+2. Widen the terminal (narrow columns break the QR).
+3. Or start Metro as usual, then in a **second** terminal run **`npm run qr`** to print the same-style QR for `exp://<LAN-IP>:8081` (uses Metro’s `/status` check).
+
+Clear cache when needed: `npx expo start --clear` (still omit `CI=1` if you want the QR).
 
 ## Backend
 

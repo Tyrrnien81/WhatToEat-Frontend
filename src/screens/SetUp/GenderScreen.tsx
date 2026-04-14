@@ -10,6 +10,7 @@ import ProgressBar from './components/ProgressBar';
 import ContinueButton from './components/ContinueButton';
 import BackButton from './components/BackButton';
 import { styles } from './styles/GenderScreen.styles';
+import { useOnboardingDraft } from '../../stores/onboardingDraftStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -36,6 +37,7 @@ const GENDERS = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function GenderScreen({ navigation }: GenderScreenProps) {
+  const setDraft = useOnboardingDraft((s) => s.setDraft);
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
@@ -82,7 +84,10 @@ export default function GenderScreen({ navigation }: GenderScreenProps) {
 
       {/* ── Continue Button ── */}
       <ContinueButton
-        onPress={() => navigation.navigate('Height')}
+        onPress={() => {
+          if (selected) setDraft({ gender: selected });
+          navigation.navigate('Height');
+        }}
         disabled={!selected}
       />
 

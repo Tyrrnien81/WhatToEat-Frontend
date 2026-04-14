@@ -6,6 +6,8 @@ import {
   ScrollView,
   Image,
   Modal,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -14,12 +16,9 @@ import ProgressBar from './components/ProgressBar';
 import ContinueButton from './components/ContinueButton';
 import { COLORS } from '../../constants/COLORS';
 import { styles } from './styles/PrivacyPolicyScreen.styles';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-type RootStackParamList = {
-  Home: undefined;
-  PrivacyPolicy: undefined;
-};
+import { RootStackParamList } from '../../../App';
+import { getOnboardingDraftSnapshot, useOnboardingDraft } from '../../stores/onboardingDraftStore';
+import { buildQuestionnairePayload, submitQuestionnaire } from '../../services/questionnaireService';
 
 type PrivacyPolicyScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'PrivacyPolicy'>;
@@ -200,10 +199,34 @@ function FullPolicyModal({
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function PrivacyPolicyScreen({ navigation }: PrivacyPolicyScreenProps) {
+  const resetDraft = useOnboardingDraft((s) => s.resetDraft);
   const [modalKey, setModalKey] = useState<PolicyKey | null>(null);
   const [showFullPolicy, setShowFullPolicy] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const activeModal = modalKey ? MODAL_CONTENT[modalKey] : null;
+
+  const handleAgree = async () => {
+    const body = buildQuestionnairePayload(getOnboardingDraftSnapshot());
+    if (!body) {
+      Alert.alert(
+        'Incomplete setup',
+        'Some onboarding answers were not captured. Please go back through the steps, or ensure you tapped Continue on each screen.',
+      );
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await submitQuestionnaire(body);
+      resetDraft();
+      navigation.navigate('Home');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      Alert.alert('Could not save preferences', msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -270,9 +293,16 @@ export default function PrivacyPolicyScreen({ navigation }: PrivacyPolicyScreenP
 
       {/* ── Bottom Actions ── */}
       <View style={styles.bottomActions}>
+        {submitting && (
+          <View style={{ alignItems: 'center', marginBottom: 8 }}>
+            <ActivityIndicator color={COLORS.red} />
+            <Text style={{ fontSize: 12, color: COLORS.inkMuted, marginTop: 4 }}>Saving to server…</Text>
+          </View>
+        )}
         <ContinueButton
           label="I Agree ✓"
-          onPress={() => navigation.navigate('Home')}
+          onPress={handleAgree}
+          disabled={submitting}
         />
         <TouchableOpacity onPress={() => setShowFullPolicy(true)} activeOpacity={0.7}>
           <Text style={styles.btnTextLink}>Read full policy →</Text>

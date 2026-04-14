@@ -13,6 +13,7 @@ import ProgressBar from './components/ProgressBar';
 import ContinueButton from './components/ContinueButton';
 import BackButton from './components/BackButton';
 import { styles, TICK_W } from './styles/WeightScreen.styles';
+import { useOnboardingDraft } from '../../stores/onboardingDraftStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -64,6 +65,7 @@ function getLabelText(unit: 'kg' | 'lb', idx: number): string {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function WeightScreen({ navigation }: WeightScreenProps) {
+  const setDraft = useOnboardingDraft((s) => s.setDraft);
   const [unit, setUnitState] = useState<'kg' | 'lb'>('kg');
   const [kgValue, setKgValue] = useState(71.2);
   const [lbValue, setLbValue] = useState(157);
@@ -181,7 +183,12 @@ export default function WeightScreen({ navigation }: WeightScreenProps) {
       <View style={{ flex: 1 }} />
 
       {/* ── Continue Button ── */}
-      <ContinueButton onPress={() => navigation.navigate('GoalWeight')} />
+      <ContinueButton
+        onPress={() => {
+          setDraft({ weight: currentValue, weightUnit: unit });
+          navigation.navigate('GoalWeight');
+        }}
+      />
 
     </SafeAreaView>
   );

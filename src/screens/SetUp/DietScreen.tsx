@@ -16,6 +16,7 @@ import BackButton from './components/BackButton';
 import SkipButton from './components/SkipButton';
 import { COLORS } from '../../constants/COLORS';
 import { styles } from './styles/DietScreen.styles';
+import { useOnboardingDraft } from '../../stores/onboardingDraftStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -155,6 +156,7 @@ function DietDetailModal({
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function DietScreen({ navigation }: DietScreenProps) {
+  const setDraft = useOnboardingDraft((s) => s.setDraft);
   const [selected, setSelected]     = useState<string | null>(null);
   const [detailDiet, setDetailDiet] = useState<Diet | null>(null);
 
@@ -173,7 +175,12 @@ export default function DietScreen({ navigation }: DietScreenProps) {
       {/* ── Top Row: Back + Skip ── */}
       <View style={styles.topRow}>
         <BackButton onPress={() => navigation.goBack()} />
-        <SkipButton onPress={() => navigation.navigate('Dislikes')} />
+        <SkipButton
+          onPress={() => {
+            setDraft({ dietType: 'balanced' });
+            navigation.navigate('Dislikes');
+          }}
+        />
       </View>
 
       {/* ── Progress ── */}
@@ -222,7 +229,10 @@ export default function DietScreen({ navigation }: DietScreenProps) {
 
       {/* ── Continue — disabled until diet selected ── */}
       <ContinueButton
-        onPress={() => navigation.navigate('Dislikes')}
+        onPress={() => {
+          if (selected) setDraft({ dietType: selected });
+          navigation.navigate('Dislikes');
+        }}
         disabled={!selected}
       />
 

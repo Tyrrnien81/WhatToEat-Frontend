@@ -12,6 +12,7 @@ import ContinueButton from './components/ContinueButton';
 import BackButton from './components/BackButton';
 import SkipButton from './components/SkipButton';
 import { styles } from './styles/DislikesScreen.styles';
+import { useOnboardingDraft } from '../../stores/onboardingDraftStore';
 
 type RootStackParamList = {
   Login: undefined; Signup: undefined; Onboarding: undefined; Home: undefined;
@@ -39,6 +40,7 @@ const CATEGORIES: Category[] = [
 ];
 
 export default function DislikesScreen({ navigation }: DislikesScreenProps) {
+  const setDraft = useOnboardingDraft((s) => s.setDraft);
   const [selected, setSelected]   = useState<Set<string>>(new Set());
   const [noDislikes, setNoDislikes] = useState(false);
 
@@ -73,7 +75,12 @@ export default function DislikesScreen({ navigation }: DislikesScreenProps) {
 
       <View style={styles.topRow}>
         <BackButton onPress={() => navigation.goBack()} />
-        <SkipButton onPress={() => navigation.navigate('Allergens')} />
+        <SkipButton
+          onPress={() => {
+            setDraft({ dislikes: [] });
+            navigation.navigate('Allergens');
+          }}
+        />
       </View>
 
       <ProgressBar progress="70%" step="Step 7 of 10" />
@@ -143,7 +150,10 @@ export default function DislikesScreen({ navigation }: DislikesScreenProps) {
       </ScrollView>
 
       <ContinueButton
-        onPress={() => navigation.navigate('Allergens')}
+        onPress={() => {
+          setDraft({ dislikes: noDislikes ? [] : Array.from(selected) });
+          navigation.navigate('Allergens');
+        }}
         disabled={!canContinue}
       />
 

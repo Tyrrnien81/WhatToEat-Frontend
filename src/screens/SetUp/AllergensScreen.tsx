@@ -13,6 +13,7 @@ import ContinueButton from './components/ContinueButton';
 import BackButton from './components/BackButton';
 import SkipButton from './components/SkipButton';
 import { styles } from './styles/AllergensScreen.styles';
+import { useOnboardingDraft } from '../../stores/onboardingDraftStore';
 
 type RootStackParamList = {
   Login: undefined; Signup: undefined; Onboarding: undefined; Home: undefined;
@@ -41,6 +42,7 @@ const ALLERGENS = [
 ];
 
 export default function AllergensScreen({ navigation }: AllergensScreenProps) {
+  const setDraft = useOnboardingDraft((s) => s.setDraft);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const toggle = (id: string) => {
@@ -56,7 +58,12 @@ export default function AllergensScreen({ navigation }: AllergensScreenProps) {
 
       <View style={styles.topRow}>
         <BackButton onPress={() => navigation.goBack()} />
-        <SkipButton onPress={() => navigation.navigate('DiningHall')} />
+        <SkipButton
+          onPress={() => {
+            setDraft({ allergens: ['none'] });
+            navigation.navigate('DiningHall');
+          }}
+        />
       </View>
 
       <ProgressBar progress="80%" step="Step 8 of 10" />
@@ -109,7 +116,10 @@ export default function AllergensScreen({ navigation }: AllergensScreenProps) {
 
       {/* ── Disabled until at least one allergen is selected ── */}
       <ContinueButton
-        onPress={() => navigation.navigate('DiningHall')}
+        onPress={() => {
+          setDraft({ allergens: Array.from(selected) });
+          navigation.navigate('DiningHall');
+        }}
         disabled={selected.size === 0}
       />
 
