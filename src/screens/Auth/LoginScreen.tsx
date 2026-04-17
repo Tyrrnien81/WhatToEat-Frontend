@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/COLORS';
 import { styles } from './styles/LoginScreen.styles';
 import { useAuth } from '../../context/AuthContext';
+import { getSupabase, supabaseSetupMessage } from '../../lib/supabase';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -41,7 +42,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [loading, setLoading]   = useState(false);
   const [success, setSuccess]   = useState(false);
 
-  const { setIsGuest } = useAuth();
+  const { setIsGuest, supabaseReady } = useAuth();
 
   // ── Validation ──────────────────────────────────────────────────────────────
   const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
@@ -74,14 +75,27 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
     if (!valid) return;
 
+    const sb = getSupabase();
+    if (!sb || !supabaseReady) {
+      setEmailErr(supabaseSetupMessage());
+      return;
+    }
+
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1600));
+      const { error } = await sb.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error) {
+        setEmailErr(error.message || 'Invalid email or password');
+        return;
+      }
       setSuccess(true);
       setIsGuest(false);
-      setTimeout(() => navigation.replace('Home'), 600);
-    } catch (err) {
-      setEmailErr('Invalid email or password');
+      setTimeout(() => navigation.replace('Home'), 400);
+    } catch {
+      setEmailErr('Something went wrong. Try again.');
     } finally {
       setLoading(false);
     }

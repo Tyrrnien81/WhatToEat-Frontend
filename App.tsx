@@ -1,9 +1,11 @@
 import React from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { COLORS } from './src/constants/COLORS';
 import LoginScreen from './src/screens/Auth/LoginScreen';
 import SignupScreen from './src/screens/Auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/Auth/ForgotPasswordScreen';
@@ -55,18 +57,34 @@ export type RootStackParamList = {
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
-const queryClient = new QueryClient(); 
+const queryClient = new QueryClient();
 
-export default function App() {
+function RootNavigator() {
+  const { initializing, session, isGuest } = useAuth();
+
+  if (initializing) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: COLORS.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={COLORS.teal} />
+      </View>
+    );
+  }
+
+  const startAtHome = (!!session && !isGuest) || isGuest;
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <SafeAreaProvider>
-        <AuthProvider>
-          <NavigationContainer>
-            <Stack.Navigator
-              initialRouteName="Login"
-              screenOptions={{ headerShown: false }}
-            >
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName={startAtHome ? 'Home' : 'Login'}
+        screenOptions={{ headerShown: false }}
+      >
               <Stack.Screen name="Login"          component={LoginScreen} />
               <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
               <Stack.Screen name="Signup"         component={SignupScreen} />
@@ -91,9 +109,18 @@ export default function App() {
               <Stack.Screen name="SignupVerify"   component={SignupVerifyScreen} />
               <Stack.Screen name="EditProfile"    component={EditProfileScreen} />
             </Stack.Navigator>
-          </NavigationContainer>
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <RootNavigator />
         </AuthProvider>
       </SafeAreaProvider>
-    </QueryClientProvider> 
+    </QueryClientProvider>
   );
 }

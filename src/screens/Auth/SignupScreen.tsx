@@ -17,6 +17,9 @@ import AuthHero from './components/AuthHero';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/COLORS';
 import { styles } from './styles/SignUpScreen.styles';
+import { useAuth } from '../../context/AuthContext';
+import { getAuthRedirectUrl } from '../../lib/authLinking';
+import { getSupabase, supabaseSetupMessage } from '../../lib/supabase';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -46,6 +49,8 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
 
   const emailRef    = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
+
+  const { supabaseReady } = useAuth();
 
   // ── Reset success state when returning to this screen ──────────────────────
   useFocusEffect(
@@ -101,15 +106,37 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
 
     if (!valid) return;
 
+    const sb = getSupabase();
+    if (!sb || !supabaseReady) {
+      setEmailErr(supabaseSetupMessage());
+      return;
+    }
+
     setLoading(true);
     try {
-      // TODO: replace with real API call
-      // await createAccount({ name, email, password });
-      await new Promise(resolve => setTimeout(resolve, 1600));
+      const { data, error } = await sb.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: getAuthRedirectUrl(),
+          data: { full_name: name.trim(), name: name.trim() },
+        },
+      });
+      if (error) {
+        setEmailErr(error.message || 'Could not create account');
+        return;
+      }
       setSuccess(true);
-      setTimeout(() => navigation.navigate('SignupVerify', { email }), 600); // ← navigate keeps Signup in stack so goBack() works
-    } catch (err) {
-      setEmailErr('An account with this email already exists');
+      if (data.session) {
+        setTimeout(() => navigation.replace('Home'), 500);
+      } else {
+        setTimeout(
+          () => navigation.navigate('SignupVerify', { email: email.trim() }),
+          400
+        );
+      }
+    } catch {
+      setEmailErr('Something went wrong. Try again.');
     } finally {
       setLoading(false);
     }

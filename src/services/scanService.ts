@@ -1,4 +1,5 @@
 import { BASE_URL, authHeaders, withAuthQuery } from './api';
+import { toLocalYmd } from '../utils/dateLocal';
 
 export type ScanItem = {
   name: string;
@@ -65,7 +66,7 @@ export async function logScanResult(params: {
     body: JSON.stringify({
       scanId: params.scanId ?? null,
       mealType: params.mealType ?? 'Snack',
-      date: params.date ?? new Date().toISOString().split('T')[0],
+      date: params.date ?? toLocalYmd(),
       items: params.items,
     }),
   });

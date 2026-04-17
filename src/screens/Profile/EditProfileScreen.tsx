@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,15 @@ import {
   SafeAreaView,
   StatusBar,
   TextInput,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../App';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { fetchProfileMe, updateProfileMe } from '../../services/profileService';
+import { fetchPreferences } from '../../services/questionnaireService';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const COLORS = {
@@ -97,16 +101,64 @@ const Divider = () => <View style={styles.divider} />;
 export default function EditProfileScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-  // Local state for inline editable fields
-  const [name, setName] = useState('Seunghoon Park');
+  const [name, setName] = useState('');
   const [university, setUniversity] = useState('UW–Madison');
-  const [height, setHeight] = useState('178');
-  const [weight, setWeight] = useState('72');
-  const [goalWeight, setGoalWeight] = useState('68');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [goalWeight, setGoalWeight] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    // TODO: persist to backend / context
-    navigation.goBack();
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        setLoading(true);
+        try {
+          const me = await fetchProfileMe();
+          if (cancelled) return;
+          setName(me.name ?? '');
+          if (me.height != null) setHeight(String(me.height));
+          if (me.weight != null) setWeight(String(me.weight));
+          if (me.goalWeight != null) setGoalWeight(String(me.goalWeight));
+        } catch {
+          /* New user — profile row not created yet. Keep fields empty. */
+        }
+        try {
+          const prefs = await fetchPreferences();
+          if (cancelled || !prefs) return;
+          if (prefs.height != null) setHeight(String(prefs.height));
+          if (prefs.weight != null) setWeight(String(prefs.weight));
+          if (prefs.goal_weight != null) setGoalWeight(String(prefs.goal_weight));
+        } catch {
+          /* No questionnaire row yet. */
+        }
+        if (!cancelled) setLoading(false);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const h = parseFloat(height);
+      const w = parseFloat(weight);
+      const gw = parseFloat(goalWeight);
+      await updateProfileMe({
+        name: name.trim() || undefined,
+        height: Number.isFinite(h) ? h : undefined,
+        weight: Number.isFinite(w) ? w : undefined,
+        goalWeight: Number.isFinite(gw) ? gw : undefined,
+      });
+      navigation.goBack();
+    } catch (e: unknown) {
+      Alert.alert('Save failed', e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -119,10 +171,25 @@ export default function EditProfileScreen() {
           <IconBack />
         </TouchableOpacity>
         <Text style={styles.screenTitle}>Edit Profile</Text>
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.85}>
-          <Text style={styles.saveBtnText}>Save</Text>
+        <TouchableOpacity
+          style={styles.saveBtn}
+          onPress={handleSave}
+          activeOpacity={0.85}
+          disabled={saving || loading}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color={COLORS.red} />
+          ) : (
+            <Text style={styles.saveBtnText}>Save</Text>
+          )}
         </TouchableOpacity>
       </View>
+
+      {loading ? (
+        <View style={{ paddingVertical: 48, alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={COLORS.red} />
+        </View>
+      ) : null}
 
       <ScrollView
         style={styles.scroll}

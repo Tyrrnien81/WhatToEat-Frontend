@@ -63,19 +63,38 @@ export function buildQuestionnairePayload(d: OnboardingDraft): QuestionnaireSubm
   };
 }
 
+const SUBMIT_TIMEOUT_MS = 60_000;
+
+/**
+ * POST /questionnaire. Resolves on success or 409 (already saved — treat as OK for onboarding).
+ */
 export async function submitQuestionnaire(body: QuestionnaireSubmitBody): Promise<void> {
   const url = withAuthQuery(`${BASE_URL}/questionnaire`);
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: authHeaders(true),
-    body: JSON.stringify(body),
-  });
-  if (res.status === 409) {
-    throw new Error('Preferences already saved. Use profile edit to update.');
-  }
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `Questionnaire failed (${res.status})`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (res.status === 409) {
+      return;
+    }
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || `Questionnaire failed (${res.status})`);
+    }
+  } catch (e: unknown) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      throw new Error(
+        `Request timed out after ${SUBMIT_TIMEOUT_MS / 1000}s. Check EXPO_PUBLIC_API_BASE_URL and that the backend is reachable from your device.`,
+      );
+    }
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -87,4 +106,30 @@ export async function fetchPreferences(): Promise<PreferencesResponse> {
     throw new Error(text || `GET preferences failed (${res.status})`);
   }
   return res.json();
+}
+
+/** PATCH /users/me/preferences — use snake_case keys expected by the API. */
+export async function updatePreferences(patch: {
+  birthday?: string;
+  gender?: string;
+  height?: number;
+  height_unit?: 'cm' | 'ft';
+  weight?: number;
+  weight_unit?: 'kg' | 'lb';
+  goal_weight?: number;
+  diet_type?: string;
+  dislikes?: string[];
+  allergens?: string[];
+  favorite_dining_halls?: string[];
+}): Promise<void> {
+  const url = withAuthQuery(`${BASE_URL}/users/me/preferences`);
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: authHeaders(true),
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `PATCH preferences failed (${res.status})`);
+  }
 }

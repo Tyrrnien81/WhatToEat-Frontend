@@ -45,7 +45,7 @@ Primary config is **`src/services/api.ts`** (defaults + env overrides).
 
 | Variable | Purpose |
 |----------|---------|
-| `EXPO_PUBLIC_API_BASE_URL` | Backend origin, e.g. `http://192.168.1.10:8000` |
+| `EXPO_PUBLIC_API_BASE_URL` | Backend origin: deployed e.g. `https://whattoeat-backend-wh34.onrender.com`, or local `http://<LAN-IP>:8000` |
 | `EXPO_PUBLIC_DEV_USER_ID` | UUID for `?user_id=` when not using a JWT |
 | `EXPO_PUBLIC_API_ACCESS_TOKEN` | Supabase **access** JWT (`Authorization: Bearer …`). When set, `user_id` query is omitted. |
 
@@ -82,6 +82,18 @@ The QR only appears when the process has a real TTY (`stdout.isTTY`). If you sti
 3. Or start Metro as usual, then in a **second** terminal run **`npm run qr`** to print the same-style QR for `exp://<LAN-IP>:8081` (uses Metro’s `/status` check).
 
 Clear cache when needed: `npx expo start --clear` (still omit `CI=1` if you want the QR).
+
+### iOS native (Xcode)
+
+After **`expo prebuild`** (or **`npm run prebuild:ios`** for a non-interactive run using `CI=1`), open the **workspace** (CocoaPods), not the bare `.xcodeproj`:
+
+```bash
+npm run open:xcode
+```
+
+That opens `ios/WhatToEatFrontend.xcworkspace`. In another terminal, start Metro from this repo (`npm start`), then build and run from Xcode (▶) on a simulator or device.
+
+The **`ios/`** directory is listed in **`.gitignore`**, so generated native projects stay local unless you remove that rule and commit them—typical when everyone regenerates with prebuild or builds with EAS.
 
 ## Backend
 

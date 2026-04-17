@@ -1,9 +1,5 @@
-import { View, Text } from 'react-native';
-
-export default function HomeScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5ECD7' }}>
-      <Text>Home</Text>
-    </View>
-  );
-}
+/**
+ * Re-export the tab “Home” implementation so anything importing `screens/HomeScreen`
+ * resolves to the same UI as `BottomBar` (not the old placeholder).
+ */
+export { default } from './HomeScreen/HomeScreenMain';

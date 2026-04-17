@@ -1,4 +1,4 @@
-import { BASE_URL } from '../services/api';
+import { BASE_URL, authHeaders, withAuthQuery } from '../services/api';
 import { DiningHall } from '../screens/DiningHall/types';
 
 export interface DiningHallsResponse {
@@ -6,7 +6,8 @@ export interface DiningHallsResponse {
 }
 
 export async function fetchDiningHalls(date: string): Promise<DiningHallsResponse> {
-  const res = await fetch(`${BASE_URL}/dining-halls/full?date=${date}`);
+  const url = withAuthQuery(`${BASE_URL}/dining-halls/full?date=${date}`);
+  const res = await fetch(url, { headers: authHeaders(false) });
   if (!res.ok) throw new Error('Failed to fetch dining halls');
   return res.json();
 }

@@ -148,3 +148,99 @@ export async function createCommunityPost(body: {
   }
   return res.json();
 }
+
+/** Full post + nested replies (same shape as feed items but with reply trees). */
+export async function fetchCommunityPostDetail(postId: string): Promise<Post> {
+  const url = withAuthQuery(`${BASE_URL}/community/posts/${postId}`);
+  const res = await fetch(url, { headers: authHeaders(false) });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Get post failed (${res.status})`);
+  }
+  const data = await res.json();
+  const p: ApiPost = data.post;
+  const roots: ApiReply[] = data.replies ?? [];
+  const replies = roots.map(mapReplyDeep);
+  return mapApiPostToPost(p, replies);
+}
+
+function mapReplyDeep(r: ApiReply): Reply {
+  return {
+    id: r.id,
+    author: r.author.name,
+    avatar: '🧑',
+    content: r.content,
+    likes: r.likeCount,
+    likedByMe: r.likedByMe,
+    createdAt: formatRelativeTime(r.createdAt),
+    replies: (r.replies ?? []).map(mapReplyDeep),
+  };
+}
+
+export async function likeCommunityPost(postId: string): Promise<{ liked: boolean; likeCount: number }> {
+  const url = withAuthQuery(`${BASE_URL}/community/posts/${postId}/likes`);
+  const res = await fetch(url, { method: 'POST', headers: authHeaders(false) });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Like failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function unlikeCommunityPost(postId: string): Promise<{ liked: boolean; likeCount: number }> {
+  const url = withAuthQuery(`${BASE_URL}/community/posts/${postId}/likes`);
+  const res = await fetch(url, { method: 'DELETE', headers: authHeaders(false) });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Unlike failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function createPostReply(postId: string, content: string): Promise<{ id: string }> {
+  const url = withAuthQuery(`${BASE_URL}/community/posts/${postId}/replies`);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Reply failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function createReplyReply(parentReplyId: string, content: string): Promise<{ id: string }> {
+  const url = withAuthQuery(`${BASE_URL}/community/replies/${parentReplyId}/replies`);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Reply failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function likeReply(replyId: string): Promise<{ liked: boolean; likeCount: number }> {
+  const url = withAuthQuery(`${BASE_URL}/community/replies/${replyId}/likes`);
+  const res = await fetch(url, { method: 'POST', headers: authHeaders(false) });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Like reply failed (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function unlikeReply(replyId: string): Promise<{ liked: boolean; likeCount: number }> {
+  const url = withAuthQuery(`${BASE_URL}/community/replies/${replyId}/likes`);
+  const res = await fetch(url, { method: 'DELETE', headers: authHeaders(false) });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Unlike reply failed (${res.status})`);
+  }
+  return res.json();
+}

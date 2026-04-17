@@ -10,6 +10,7 @@ import { DiningHallCard } from './components/DiningHallCard';
 import { SortDropdown } from './components/SortDropdown';
 import { DateTabBar, DateTab } from './components/DateTabBar';
 import { styles } from './styles/DiningHallsScreen.styles';
+import { toLocalYmd } from '../../utils/dateLocal';
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -18,7 +19,7 @@ const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'S
 function dateKey(offsetDays: number): string {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
-  return d.toISOString().split('T')[0]; // → "2026-04-11"
+  return toLocalYmd(d);
 }
 
 function buildDateTabs(): DateTab[] {
@@ -37,8 +38,10 @@ function buildDateTabs(): DateTab[] {
 const DATE_TABS = buildDateTabs();
 
 function resolveDayKey(date: string, availableKeys: string[]): string {
+  if (availableKeys.length === 0) return date;
   if (availableKeys.includes(date)) return date;
   const idx = DATE_TABS.findIndex(t => t.key === date);
+  if (idx < 0) return availableKeys[0];
   return availableKeys[idx % availableKeys.length] ?? availableKeys[0];
 }
 

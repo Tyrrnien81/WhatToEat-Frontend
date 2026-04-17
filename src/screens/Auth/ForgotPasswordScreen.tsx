@@ -17,6 +17,9 @@ import ReturnToLogin from './components/ReturnToLogin';
 import AuthHeader from './components/AuthHeader';
 import { COLORS } from '../../constants/COLORS';
 import { styles } from './styles/ForgotPasswordScreen.styles';
+import { getAuthRedirectUrl } from '../../lib/authLinking';
+import { useAuth } from '../../context/AuthContext';
+import { getSupabase, supabaseSetupMessage } from '../../lib/supabase';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -38,6 +41,7 @@ export default function ForgotPasswordScreen({ navigation }: ForgotPasswordScree
   const [emailErr, setEmailErr] = useState('');
   const [loading, setLoading]   = useState(false);
   const [sent, setSent]         = useState(false);
+  const { supabaseReady } = useAuth();
 
   // ── Reset on focus ──────────────────────────────────────────────────────────
   useFocusEffect(
@@ -60,12 +64,25 @@ export default function ForgotPasswordScreen({ navigation }: ForgotPasswordScree
       return;
     }
     setEmailErr('');
+
+    const sb = getSupabase();
+    if (!sb || !supabaseReady) {
+      setEmailErr(supabaseSetupMessage());
+      return;
+    }
+
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const redirectTo = getAuthRedirectUrl();
+      const { error } = await sb.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo,
+      });
+      if (error) {
+        setEmailErr(error.message || 'Could not send reset email');
+        return;
+      }
       setSent(true);
-      setTimeout(() => navigation.navigate('VerifyEmail'), 600);
-    } catch (err) {
+    } catch {
       setEmailErr('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -112,7 +129,11 @@ export default function ForgotPasswordScreen({ navigation }: ForgotPasswordScree
             />
 
             <Text style={[styles.hintText, !!emailErr && styles.hintTextError]}>
-              {emailErr ? emailErr : 'Enter the email you used for sign up'}
+              {emailErr
+                ? emailErr
+                : sent
+                  ? 'Open the link in the email to reset your password. You can finish in the app if the link opens WhatToEat.'
+                  : 'Enter the email you used for sign up'}
             </Text>
 
             <TouchableOpacity
@@ -124,9 +145,9 @@ export default function ForgotPasswordScreen({ navigation }: ForgotPasswordScree
               {loading ? (
                 <ActivityIndicator color="white" size="small" />
               ) : sent ? (
-                <Text style={styles.btnPrimaryText}>✓  Code sent!</Text>
+                <Text style={styles.btnPrimaryText}>✓  Check your inbox</Text>
               ) : (
-                <Text style={styles.btnPrimaryText}>Send code</Text>
+                <Text style={styles.btnPrimaryText}>Send reset link</Text>
               )}
             </TouchableOpacity>
           </View>

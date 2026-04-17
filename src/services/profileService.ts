@@ -44,3 +44,27 @@ export async function fetchFoodLogSummary(
   }
   return res.json();
 }
+
+/** PATCH /users/me — fields match backend ProfileUpdateRequest (camelCase aliases). */
+export type ProfilePatch = {
+  name?: string;
+  birthday?: string;
+  gender?: string;
+  height?: number;
+  weight?: number;
+  goalWeight?: number;
+  dietType?: string;
+};
+
+export async function updateProfileMe(patch: ProfilePatch): Promise<void> {
+  const url = withAuthQuery(`${BASE_URL}/users/me`);
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: authHeaders(true),
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `PATCH profile failed (${res.status})`);
+  }
+}

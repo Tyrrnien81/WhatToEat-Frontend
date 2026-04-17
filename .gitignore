@@ -17,25 +17,57 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.hprof
 
 # Metro
 .metro-health-check*
 
-# debug
+# debug & logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+pnpm-debug.*
+*.log
+logs/
 
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 *.pem
 
-# local env files
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# local env & secrets (keep .env.example committed)
+.env
+.env.*
+!.env.example
 .env*.local
 
 # typescript
 *.tsbuildinfo
 
-# generated native folders
+# tooling / caches
+.eslintcache
+.cache/
+.parcel-cache/
+.turbo/
+
+# tests & coverage
+coverage/
+*.lcov
+
+# IDEs (machine-local; commit shared config only if you rename / un-ignore)
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# EAS / Expo Application Services (local auth state; eas.json stays tracked)
+.eas/
+
+# generated native folders (regenerate with expo prebuild / pod install)
 /ios
 /android

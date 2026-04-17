@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import ReturnToLogin from './components/ReturnToLogin';
 import AuthHeader from './components/AuthHeader';
 import { COLORS } from '../../constants/COLORS';
 import { styles } from './styles/ResetPasswordScreen.styles';
+import { getSupabase, supabaseSetupMessage } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RootStackParamList = {
@@ -56,6 +58,21 @@ export default function ResetPasswordScreen({ navigation }: ResetPasswordScreenP
   const [newError, setNewError] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [success, setSuccess]   = useState(false);
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
+  const [resetErr, setResetErr] = useState('');
+  const { supabaseReady } = useAuth();
+
+  useEffect(() => {
+    const sb = getSupabase();
+    if (!sb) {
+      setHasSession(false);
+      return;
+    }
+    sb.auth
+      .getSession()
+      .then(({ data: { session } }) => setHasSession(!!session))
+      .catch(() => setHasSession(false));
+  }, []);
 
   // ── Requirements ────────────────────────────────────────────────────────────
   const req = {
@@ -83,13 +100,28 @@ export default function ResetPasswordScreen({ navigation }: ResetPasswordScreenP
     if (!newPw || !allReqMet) { setNewError(true); return; }
     if (newPw !== confPw) { setConfHint('mismatch'); return; }
 
+    const sb = getSupabase();
+    if (!sb || !supabaseReady) {
+      setResetErr(supabaseSetupMessage());
+      return;
+    }
+    if (!hasSession) {
+      setResetErr('Open the reset link from your email on this device first, then return here.');
+      return;
+    }
+
+    setResetErr('');
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const { error } = await sb.auth.updateUser({ password: newPw });
+      if (error) {
+        setResetErr(error.message || 'Could not update password');
+        return;
+      }
       setSuccess(true);
       setTimeout(() => navigation.navigate('Login'), 1200);
     } catch {
-      setNewError(true);
+      setResetErr('Something went wrong. Try again.');
     } finally {
       setLoading(false);
     }
@@ -118,10 +150,45 @@ export default function ResetPasswordScreen({ navigation }: ResetPasswordScreenP
           {/* ── Header ── */}
           <AuthHeader
             title="Reset Password"
-            subtitle="Choose a strong new password for your account."
+            subtitle={
+              hasSession === false
+                ? 'Open the link in your reset email first. If you already set a new password in the browser, sign in from Log in.'
+                : 'Choose a strong new password for your account.'
+            }
           />
 
+          {hasSession === null && (
+            <View style={{ alignItems: 'center', marginBottom: 16 }}>
+              <ActivityIndicator color={COLORS.red} />
+            </View>
+          )}
+
+          {!!resetErr && (
+            <Text style={{ color: COLORS.red, fontWeight: '700', marginBottom: 12, textAlign: 'center' }}>
+              {resetErr}
+            </Text>
+          )}
+
+          {hasSession === false && (
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: COLORS.inkMuted,
+                textAlign: 'center',
+                marginBottom: 20,
+                lineHeight: 20,
+              }}
+            >
+              This screen updates the password only after Supabase establishes a session from your
+              reset link (same device). Many flows complete in the browser instead — that is fine;
+              use Log in with your new password afterward.
+            </Text>
+          )}
+
           {/* ── New Password Section ── */}
+          {hasSession !== false && (
+          <>
           <View style={styles.fieldSection}>
             <Text style={styles.sectionLabel}>New Password</Text>
             <View style={styles.fieldCard}>
@@ -195,12 +262,15 @@ export default function ResetPasswordScreen({ navigation }: ResetPasswordScreenP
               </Text>
             </View>
           </View>
+          </>
+          )}
 
           {/* ── Reset Button ── */}
+          {hasSession !== false && (
           <TouchableOpacity
             style={[styles.resetBtn, success && styles.resetBtnSuccess]}
             onPress={handleReset}
-            disabled={loading || success}
+            disabled={loading || success || hasSession === null}
             activeOpacity={0.85}
           >
             {loading ? (
@@ -211,6 +281,7 @@ export default function ResetPasswordScreen({ navigation }: ResetPasswordScreenP
               <Text style={styles.resetBtnText}>Reset password</Text>
             )}
           </TouchableOpacity>
+          )}
 
         </ScrollView>
       </KeyboardAvoidingView>

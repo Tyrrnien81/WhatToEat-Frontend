@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../App';
 import { fetchFoodLogSummary, fetchProfileMe, type ProfileMeResponse } from '../../services/profileService';
@@ -19,6 +19,7 @@ import {
   fetchPreferences,
   type PreferencesResponse,
 } from '../../services/questionnaireService';
+import { useAuth } from '../../context/AuthContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const COLORS = {
@@ -149,8 +150,8 @@ export default function ProfileScreen() {
   const [notifications, setNotifications] = useState(true);
   const [weeklyReport, setWeeklyReport] = useState(false);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { signOut } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [me, setMe] = useState<ProfileMeResponse | null>(null);
   const [prefs, setPrefs] = useState<PreferencesResponse | null>(null);
   const [streak, setStreak] = useState<number>(0);
@@ -160,33 +161,51 @@ export default function ProfileScreen() {
       let cancelled = false;
       (async () => {
         setLoading(true);
-        setError(null);
         try {
           const profile = await fetchProfileMe();
           if (!cancelled) setMe(profile);
-          try {
-            const p = await fetchPreferences();
-            if (!cancelled) setPrefs(p);
-          } catch {
-            if (!cancelled) setPrefs(null);
-          }
-          try {
-            const sum = await fetchFoodLogSummary('week');
-            if (!cancelled) setStreak(sum.currentStreak ?? 0);
-          } catch {
-            if (!cancelled) setStreak(0);
-          }
-        } catch (e: unknown) {
-          if (!cancelled) setError(e instanceof Error ? e.message : String(e));
-        } finally {
-          if (!cancelled) setLoading(false);
+        } catch {
+          // Profile row may not exist yet (new user). Show empty-state UI silently.
+          if (!cancelled) setMe(null);
         }
+        try {
+          const p = await fetchPreferences();
+          if (!cancelled) setPrefs(p);
+        } catch {
+          if (!cancelled) setPrefs(null);
+        }
+        try {
+          const sum = await fetchFoodLogSummary('week');
+          if (!cancelled) setStreak(sum.currentStreak ?? 0);
+        } catch {
+          if (!cancelled) setStreak(0);
+        }
+        if (!cancelled) setLoading(false);
       })();
       return () => {
         cancelled = true;
       };
     }, []),
   );
+
+  // Did the user finish the questionnaire? If no prefs row at all, treat as incomplete.
+  const needsQuestionnaire = !prefs;
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await signOut();
+    } finally {
+      navigation.dispatch(
+        CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] }),
+      );
+    }
+  }, [navigation, signOut]);
+
+  const handleStartQuestionnaire = useCallback(() => {
+    navigation.dispatch(
+      CommonActions.navigate({ name: 'Welcome' }),
+    );
+  }, [navigation]);
 
   const displayName = me?.name ?? '—';
   const handle = me?.email ? `@${me.email.split('@')[0]}` : '@—';
@@ -250,13 +269,6 @@ export default function ProfileScreen() {
           <View style={{ paddingVertical: 24, alignItems: 'center' }}>
             <ActivityIndicator size="large" color={COLORS.red} />
           </View>
-        ) : error ? (
-          <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
-            <Text style={{ color: COLORS.red, fontWeight: '700' }}>{error}</Text>
-            <Text style={{ marginTop: 8, color: COLORS.inkMuted, fontSize: 12 }}>
-              Check API base URL and that the backend allows your user (JWT or dev user_id).
-            </Text>
-          </View>
         ) : null}
 
         {/* ── Avatar + Name ── */}
@@ -288,6 +300,28 @@ export default function ProfileScreen() {
           <StatCard value={weightStr} label="current" bg="#D8F5F3" accent="#2EC4B6" />
           <StatCard value={goalStr} label="goal" bg="#FFF2DC" accent="#FF9F1C" />
         </View>
+
+        {/* ── Questionnaire CTA (shown when prefs missing, or always as a shortcut) ── */}
+        <TouchableOpacity
+          style={[styles.questionnaireBtn, needsQuestionnaire && styles.questionnaireBtnHighlight]}
+          activeOpacity={0.85}
+          onPress={handleStartQuestionnaire}
+        >
+          <Text style={styles.questionnaireBtnEmoji}>📝</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.questionnaireBtnText}>
+              {needsQuestionnaire ? 'Complete your setup' : 'Retake questionnaire'}
+            </Text>
+            <Text style={styles.questionnaireBtnSub}>
+              {needsQuestionnaire
+                ? 'Fill in preferences to personalize recommendations'
+                : 'Update your diet, allergens, goals, and more'}
+            </Text>
+          </View>
+          <View style={styles.chevronWrap}>
+            <IconChevron />
+          </View>
+        </TouchableOpacity>
 
         {/* ── Diet & Allergens ── */}
         <SectionBlock title="Diet & Restrictions">
@@ -349,7 +383,7 @@ export default function ProfileScreen() {
         </SectionBlock>
 
         {/* ── Logout ── */}
-        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.85}>
+        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.85} onPress={handleLogout}>
           <IconLogout />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
@@ -609,6 +643,44 @@ const styles = StyleSheet.create({
   divider: {
     height: 1.5,
     backgroundColor: '#F0E0E0',
+  },
+
+  // Questionnaire CTA
+  questionnaireBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 20,
+    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    backgroundColor: COLORS.bg2,
+    borderWidth: 2.5,
+    borderColor: COLORS.border,
+    borderRadius: 18,
+    shadowColor: COLORS.border,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  questionnaireBtnHighlight: {
+    backgroundColor: '#FFE8EA',
+  },
+  questionnaireBtnEmoji: {
+    fontSize: 22,
+  },
+  questionnaireBtnText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: COLORS.ink,
+    letterSpacing: -0.3,
+  },
+  questionnaireBtnSub: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.inkMuted,
+    marginTop: 2,
   },
 
   // Logout

@@ -1,31 +1,53 @@
-import { BASE_URL, DEFAULT_USER_ID } from './api';
+import { BASE_URL, authHeaders, withAuthQuery } from './api';
+import { toLocalYmd } from '../utils/dateLocal';
 
-const userId = DEFAULT_USER_ID;
-const today = new Date().toISOString().split('T')[0];
+/** Call at request time — module-level "today" breaks across midnight and used to use UTC. */
+function todayLocal(): string {
+  return toLocalYmd(new Date());
+}
+
+async function parseJson<T>(res: Response, label: string): Promise<T> {
+  const text = await res.text();
+  if (!res.ok) {
+    const hint = text.trim().slice(0, 200) || res.statusText;
+    throw new Error(`${label} (${res.status}): ${hint}`);
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error(`${label}: expected JSON, got: ${text.trim().slice(0, 120)}`);
+  }
+}
 
 export const getRecommendedCombos = async (mealType?: string) => {
-  const url = `${BASE_URL}/recommendations/combo?user_id=${userId}&date=${today}${mealType ? `&mealType=${mealType}` : ''}`;
-  const res = await fetch(url);
-  return res.json();
+  const qs = new URLSearchParams({ date: todayLocal() });
+  if (mealType) qs.set('mealType', mealType);
+  const url = withAuthQuery(`${BASE_URL}/recommendations/combo?${qs.toString()}`);
+  const res = await fetch(url, { headers: authHeaders(false) });
+  return parseJson(res, 'GET /recommendations/combo');
 };
 
 export const getDailyGoals = async () => {
-  const url = `${BASE_URL}/goals/daily?user_id=${userId}&date=${today}`;
-  const res = await fetch(url);
-  return res.json();
+  const qs = new URLSearchParams({ date: todayLocal() });
+  const url = withAuthQuery(`${BASE_URL}/goals/daily?${qs.toString()}`);
+  const res = await fetch(url, { headers: authHeaders(false) });
+  return parseJson(res, 'GET /goals/daily');
 };
 
 export const logMeal = async (mealType: string, items: object[]) => {
-  const res = await fetch(`${BASE_URL}/meals/log?user_id=${userId}`, {
+  const url = withAuthQuery(`${BASE_URL}/meals/log`);
+  const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ date: today, mealType, items }),
+    headers: authHeaders(true),
+    body: JSON.stringify({ date: todayLocal(), mealType, items }),
   });
-  return res.json();
+  return parseJson(res, 'POST /meals/log');
 };
 
 export const getAddons = async (mealType?: string) => {
-  const url = `${BASE_URL}/recommendations/addons?user_id=${userId}&date=${today}${mealType ? `&mealType=${mealType}` : ''}`;
-  const res = await fetch(url);
-  return res.json();
+  const qs = new URLSearchParams({ date: todayLocal() });
+  if (mealType) qs.set('mealType', mealType);
+  const url = withAuthQuery(`${BASE_URL}/recommendations/addons?${qs.toString()}`);
+  const res = await fetch(url, { headers: authHeaders(false) });
+  return parseJson(res, 'GET /recommendations/addons');
 };
